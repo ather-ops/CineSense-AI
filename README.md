@@ -1,20 +1,24 @@
 <div align="center">
 
-<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/2.png" alt="CineSense AI Banner" width="200%" />
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/Cinesense%20Github%20Design.jpg" alt="CineSense AI Banner" width="100%" />
 
 <br/>
 <br/>
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-orange?style=for-the-badge)
-![SentenceTransformers](https://img.shields.io/badge/SentenceTransformers-NLP-green?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen?style=for-the-badge)
-![Days](https://img.shields.io/badge/Sprint-Day%203%20of%20N-red?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white&labelColor=1e2a3a)
+![SentenceTransformers](https://img.shields.io/badge/SentenceTransformers-all--MiniLM--L6--v2-2ECC71?style=flat-square&labelColor=1a2a1a)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-E67E22?style=flat-square&labelColor=2a1a0a)
+![NLTK](https://img.shields.io/badge/NLTK-Chunking-9B59B6?style=flat-square&labelColor=1a0a2a)
+![Pandas](https://img.shields.io/badge/Pandas-Data%20Pipeline-150458?style=flat-square&logo=pandas&logoColor=white&labelColor=0a0a2a)
+
+![Status](https://img.shields.io/badge/Status-Active%20Daily%20Commits-27AE60?style=flat-square&labelColor=0a1a0a)
+![Sprint](https://img.shields.io/badge/Sprint-Day%204%20of%20N-E74C3C?style=flat-square&labelColor=2a0a0a)
+![License](https://img.shields.io/badge/License-MIT-F39C12?style=flat-square&labelColor=2a1a00)
+![Destination](https://img.shields.io/badge/Destination-Chrome%20Extension-4285F4?style=flat-square&logo=google-chrome&logoColor=white&labelColor=0a0a2a)
 
 <br/>
 
-> **Semantic search for Netflix — powered by vector embeddings, ChromaDB, and a RAG pipeline being built one commit at a time. Final destination: a Chrome Extension.**
+> **Semantic search for Netflix — powered by vector embeddings, sentence-level chunking, ChromaDB, and a RAG pipeline being built one commit at a time. Final destination: a Chrome Extension.**
 
 </div>
 
@@ -24,7 +28,7 @@
 
 CineSense AI is a production-grade semantic search system built on top of the Netflix titles dataset (8,800+ titles). Instead of keyword matching, it understands the *intent* behind your query. Search for "dark psychological thriller with unreliable narrator" and it retrieves the closest semantic matches — not titles that happen to contain those exact words.
 
-This repository is an active, daily-commit build log. Every day, a new capability is added: from raw embeddings to chunking, LLM-powered re-ranking, and eventually a fully deployed Chrome Extension that sits inside Netflix itself.
+This repository is an active, daily-commit build log. Every day, a new capability is added: from raw embeddings to sentence-level chunking, LLM-powered re-ranking, and eventually a fully deployed Chrome Extension that sits inside Netflix itself.
 
 If you want to understand RAG (Retrieval-Augmented Generation) from the ground up — embeddings, vector stores, pipelines — follow the foundation repository first:
 
@@ -34,7 +38,7 @@ If you want to understand RAG (Retrieval-Augmented Generation) from the ground u
 
 ## Why This Project Exists
 
-Most "recommendation engines" you see in portfolios are collaborative filtering wrappers around scikit-learn. CineSense AI is different. It is being built the way a production ML system is built: with a real vector store, semantic embeddings, metadata filtering, and an end-to-end retrieval pipeline heading toward a live browser extension.
+Most "recommendation engines" you see in portfolios are collaborative filtering wrappers around scikit-learn. CineSense AI is different. It is being built the way a production ML system is built: with a real vector store, semantic embeddings, sentence-level document chunking, metadata filtering, and an end-to-end retrieval pipeline heading toward a live browser extension.
 
 The goal is not to demonstrate that you can use a library. The goal is to build something that works in the real world.
 
@@ -42,32 +46,9 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 
 ## Current Architecture
 
-```
-netflix_titles.csv  (8,800+ titles)
-        |
-        v
-   [ Data Cleaning & EDA ]
-   Null handling, type normalization, visual dashboards
-        |
-        v
-   [ Feature Engineering ]
-   Combined text: title + director + cast + genres + description
-        |
-        v
-   [ Embedding Generation ]
-   SentenceTransformer: all-MiniLM-L6-v2
-   384-dimensional dense vectors per title
-        |
-        v
-   [ Vector Store: ChromaDB ]
-   Persistent collection with rich metadata
-   (type, country, year, rating, genre)
-        |
-        v
-   [ Advanced Retrieval Engine ]
-   Semantic query + metadata filters ($and, $gte, $lte, $contains)
-   Returns ranked results with full context
-```
+<div align="center">
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture.svg" alt="CineSense AI Pipeline Architecture" width="68%" />
+</div>
 
 ---
 
@@ -142,13 +123,38 @@ This section is updated with every commit. Each day adds a layer to the pipeline
 
 ---
 
+### Day 4 — Document Chunking
+
+**Objective:** Handle long combined-text documents properly by splitting them at sentence boundaries before embedding — improving retrieval precision on verbose entries.
+
+**What was built:**
+
+`chunk_text_by_sentences(text, target_words=400, min_words=100)` — splits any document at natural sentence boundaries using NLTK's `sent_tokenize`. Targets 400 words per chunk. Orphaned final segments below 100 words are merged into the preceding chunk rather than stored as standalone noise.
+
+`should_chunk(text, max_words=500)` — lightweight gate function. Documents under 500 words skip the chunking process entirely and are inserted as-is, preserving performance on the majority of the dataset where descriptions are short.
+
+The metadata schema was extended to track `chunk_index` and `total_chunks` per stored vector, allowing the retrieval layer to surface exactly which portion of a title matched the query — and enabling future LLM re-ranking to reconstruct full document context from its parts.
+
+IDs migrated from `show_id` to `chunk_{i}` format to handle the one-to-many relationship between titles and their stored vectors.
+
+**Chunking design decisions:**
+
+| Decision | Rationale |
+|---|---|
+| Sentence-boundary split (NLTK) over fixed-word split | Preserves grammatical completeness — critical for meaningful embeddings |
+| 500-word gate (`should_chunk`) | Most Netflix descriptions are short; skipping chunking on them avoids unnecessary overhead |
+| Merge short final segments | Prevents low-signal orphan chunks from polluting search results |
+| `chunk_index` + `total_chunks` in metadata | Enables future context reconstruction for LLM re-ranking |
+
+---
+
 ### Coming Next
 
 | Day | Planned Work |
 |---|---|
-| Day 4 | Document chunking — split long descriptions into overlapping chunks for finer-grained retrieval |
 | Day 5 | LLM integration — re-rank results using an LLM layer, natural language answer generation |
-| Day 6+ | API layer (FastAPI), Chrome Extension scaffold, Netflix DOM injection |
+| Day 6 | API layer — FastAPI endpoint wrapping the full search pipeline |
+| Day 7+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
 
 ---
 
@@ -161,9 +167,11 @@ CineSense-AI/
 |   |-- day1_eda.ipynb
 |   |-- day2_embeddings.ipynb
 |   |-- day3_retrieval.ipynb
+|   |-- day4_chunking.ipynb
 |
 |-- 02-Assets/
 |   |-- Cinesense Github Design.jpg
+|   |-- architecture.svg
 |
 |-- 03-Data/
 |   |-- netflix_titles.csv
@@ -182,6 +190,7 @@ CineSense-AI/
 | Language | Python 3.10+ |
 | Data | pandas, numpy |
 | Visualization | matplotlib, seaborn |
+| Tokenization | NLTK (`sent_tokenize`) |
 | Embeddings | SentenceTransformers (`all-MiniLM-L6-v2`) |
 | Vector Store | ChromaDB |
 | API (upcoming) | FastAPI |
@@ -201,12 +210,12 @@ cd CineSense-AI
 **Install dependencies:**
 
 ```bash
-pip install pandas numpy matplotlib seaborn sentence-transformers chromadb
+pip install pandas numpy matplotlib seaborn sentence-transformers chromadb nltk
 ```
 
 **Run the notebook:**
 
-Open `01-Notebooks/day3_retrieval.ipynb` in Jupyter and run all cells. Place `netflix_titles.csv` in the `03-Data/` directory before running.
+Open `01-Notebooks/day4_chunking.ipynb` in Jupyter and run all cells. Place `netflix_titles.csv` in the `03-Data/` directory before running.
 
 **Run a search:**
 
