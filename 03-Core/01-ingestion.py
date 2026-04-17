@@ -9,6 +9,11 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
+import nltk
+from nltk.tokenize import sent_tokenize
+
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
 
 # step 2: Load data with error handling
 try:
@@ -72,7 +77,7 @@ sns.barplot(x=top_countries.values, y=top_countries.index, hue=top_countries.ind
 plt.title('Top 10 Content-Producing Countries', fontweight='bold', color=dark_slate)
 plt.xlabel('Number of Titles')
 
-# Graph 3: Top genres bar plot 
+# Graph 3: Top genres bar plot
 plt.figure(figsize=(10,6))
 genres = df["listed_in"].str.split(',').explode()
 genre_counts = genres.value_counts().head(10)
@@ -89,7 +94,7 @@ plt.title('Content Release Growth Over the Years', fontweight='bold', color=dark
 plt.xlabel('Year')
 plt.ylabel('Total Titles')
 
-# Graph 5: Rating distribution 
+# Graph 5: Rating distribution
 plt.figure(figsize=(10, 6))
 rating_order = df['rating'].value_counts().index
 sns.countplot(data=df, x='rating', order=rating_order, palette='dark:#2ECC71', hue='rating', legend=False)
@@ -99,21 +104,121 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# step 6: Create combined text for embeddings
-df["combined_txt"] = (df["title"] + " " + df["director"] + " " + df["cast"] + " " + df["listed_in"] + " " + df["description"])
+# ============================================
+# CHUNKING FUNCTION FOR LONG DOCUMENTS
+# ============================================
+
+def chunk_text_by_sentences(text, target_words=400, min_words=100):
+    """
+    Split long text into chunks by sentence boundaries.
+    Preserves sentence completeness.
+    
+    Parameters:
+    - text: The document text to chunk
+    - target_words: Desired words per chunk (default 400)
+    - min_words: Minimum words to keep a chunk (default 100)
+    
+    Returns:
+    - List of text chunks
+    """
+    if not isinstance(text, str) or len(text.strip()) == 0:
+        return [""]
+    
+    sentences = sent_tokenize(text)
+    
+    if len(sentences) <= 1:
+        return [text]
+    
+    chunks = []
+    current_chunk = []
+    current_words = 0
+    
+    for sentence in sentences:
+        sentence_words = len(sentence.split())
+        
+        if current_words + sentence_words > target_words and current_chunk:
+            chunks.append(' '.join(current_chunk))
+            current_chunk = [sentence]
+            current_words = sentence_words
+        else:
+            current_chunk.append(sentence)
+            current_words += sentence_words
+    
+    if current_chunk and current_words >= min_words:
+        chunks.append(' '.join(current_chunk))
+    elif current_chunk:
+        if chunks:
+            chunks[-1] = chunks[-1] + ' ' + ' '.join(current_chunk)
+        else:
+            chunks.append(' '.join(current_chunk))
+    
+    return chunks
+
+def should_chunk(text, max_words=500):
+    """
+    Determine if text needs chunking based on length.
+    Returns True if text is longer than max_words.
+    """
+    if not isinstance(text, str):
+        return False
+    return len(text.split()) > max_words
+
+# step 6: Create combined text for embeddings with chunking
+print("\n" + "="*60)
+print("STEP 6: Creating combined text and applying chunking where needed")
+print("="*60)
+
+all_chunks = []
+chunk_metadata = []
+
+for idx, row in df.iterrows():
+    combined = f"{row['title']} {row['director']} {row['cast']} {row['listed_in']} {row['description']}"
+    
+    if should_chunk(combined, max_words=500):
+        chunks = chunk_text_by_sentences(combined, target_words=400, min_words=100)
+        for chunk_idx, chunk in enumerate(chunks):
+            all_chunks.append(chunk)
+            chunk_metadata.append({
+                "show_id": row["show_id"],
+                "title": row["title"],
+                "type": row["type"],
+                "country": row["country"],
+                "release_year": row["release_year"],
+                "rating": row["rating"],
+                "listed_in": row["listed_in"],
+                "chunk_index": chunk_idx,
+                "total_chunks": len(chunks)
+            })
+    else:
+        all_chunks.append(combined)
+        chunk_metadata.append({
+            "show_id": row["show_id"],
+            "title": row["title"],
+            "type": row["type"],
+            "country": row["country"],
+            "release_year": row["release_year"],
+            "rating": row["rating"],
+            "listed_in": row["listed_in"],
+            "chunk_index": 0,
+            "total_chunks": 1
+        })
+
+print(f"Original documents: {len(df)}")
+print(f"Total chunks created: {len(all_chunks)}")
+print(f"Average chunk size: {sum(len(c.split()) for c in all_chunks) / len(all_chunks):.0f} words")
 
 # step 7: Model selection and embeddings
 model = SentenceTransformer("all-MiniLM-L6-v2")
 try:
     print("Generating embeddings. This may take a few minutes...")
-    embeddings = model.encode(df["combined_txt"].tolist(), show_progress_bar=True)
+    embeddings = model.encode(all_chunks, show_progress_bar=True)
     print("Embeddings generated successfully!")
 except Exception as e:
     print(f"Error generating embeddings: {e}")
     exit()
 
 # step 8: Initialise chromadb
-client = chromadb.PersistentClient(path="./03-Core/chroma_db")
+client = chromadb.Client()
 
 # step 9: Creating collections
 try:
@@ -124,25 +229,21 @@ except:
 collection = client.create_collection(name="netflix_titles")
 
 # step 10: Prepare Data and Insert
-ids = df["show_id"].tolist()
+ids = [f"chunk_{i}" for i in range(len(all_chunks))]
 metadatas = []
-for idx, row in df.iterrows():
-    try:
-        added_year = int(str(row["date_added"]).split(",")[-1].strip())
-    except:
-        added_year = row["release_year"]
+for meta in chunk_metadata:
     metadatas.append({
-        "title": row["title"],
-        "type": row["type"],
-        "country": row["country"],
-        "release_year": row["release_year"],
-        "added_year": added_year,
-        "rating": row["rating"],
-        "listed_in": row["listed_in"],
-        "description": row["description"]
+        "title": meta["title"],
+        "type": meta["type"],
+        "country": meta["country"],
+        "release_year": meta["release_year"],
+        "rating": meta["rating"],
+        "listed_in": meta["listed_in"],
+        "chunk_index": meta["chunk_index"],
+        "total_chunks": meta["total_chunks"]
     })
 
-documents = df["description"].fillna("no description").tolist()
+documents = all_chunks
 
 # step 11: Batch insert
 batch_size = 100
@@ -195,7 +296,7 @@ def advanced_netflix_search(collection, model, query_text, genre=None, min_year=
             print(f"   Year: {meta['release_year']} | Rating: {meta['rating']}")
             print(f"   Type: {meta['type']} | Country: {meta['country']}")
             print(f"   Genre: {meta['listed_in']}")
-            print(f"   Description: {meta['description'][:150]}...")
+            print(f"   Chunk: {meta['chunk_index']+1}/{meta['total_chunks']}")
     else:
         print("No results found. Try adjusting your filters.")
 
