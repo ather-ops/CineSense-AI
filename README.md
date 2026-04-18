@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/CineSense-AI.png" alt="CineSense AI Banner" width="100%" />
+<img src="https://raw.githubusercontent.com/ather-ops/CineSense-AI/main/02-Assets/Cinesense%20Github%20Design.jpg" alt="CineSense AI Banner" width="100%" />
 
 <br/>
 <br/>
@@ -8,16 +8,16 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white&labelColor=0d1117)
 ![SentenceTransformers](https://img.shields.io/badge/SentenceTransformers-MiniLM-2ECC71?style=flat-square&labelColor=0d1117)
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-E67E22?style=flat-square&labelColor=0d1117)
-![NLTK](https://img.shields.io/badge/NLTK-Chunking-9B59B6?style=flat-square&labelColor=0d1117)
+![NLTK](https://img.shields.io/badge/NLTK-sent__tokenize-9B59B6?style=flat-square&labelColor=0d1117)
 ![Pandas](https://img.shields.io/badge/Pandas-Pipeline-150458?style=flat-square&logo=pandas&logoColor=white&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-Active%20Daily%20Commits-27AE60?style=flat-square&labelColor=0d1117)
-![Sprint](https://img.shields.io/badge/Sprint-Day%204-E74C3C?style=flat-square&labelColor=0d1117)
+![Sprint](https://img.shields.io/badge/Sprint-Day%205-2ECC71?style=flat-square&labelColor=0d1117)
 ![Destination](https://img.shields.io/badge/Target-Chrome%20Extension-4285F4?style=flat-square&logo=google-chrome&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-F39C12?style=flat-square&labelColor=0d1117)
 
 <br/>
 
-> **Semantic search for Netflix — powered by vector embeddings, sentence-level chunking, and ChromaDB. Built daily. Shipping as a Chrome Extension.**
+> **Semantic search for Netflix — powered by proper sentence-level chunking, vector embeddings, and ChromaDB. Built daily. Shipping as a Chrome Extension.**
 
 </div>
 
@@ -29,15 +29,13 @@ CineSense AI is a production-grade semantic search system built on the Netflix t
 
 This repository is a daily-commit build log. Every day, one new capability is added to the pipeline. The final destination is a Chrome Extension that sits inside Netflix itself and replaces the search bar with a semantic engine.
 
-If you want to understand RAG (Retrieval-Augmented Generation) from first principles before exploring this repo, start here:
-
-**RAG Foundation:** [Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG) — covers the complete embedding pipeline from one-hot encoding through SentenceTransformers, step by step.
+**RAG Foundation:** [Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG) — learn the complete embedding pipeline from one-hot encoding through SentenceTransformers before diving into this repo.
 
 ---
 
 ## Why This Project Exists
 
-Most "recommendation engines" in portfolios are collaborative filtering wrappers around scikit-learn. CineSense AI is different. It is being built the way a production ML system is built: real vector store, semantic embeddings, sentence-level document chunking, compound metadata filtering, and a retrieval pipeline heading toward a live browser extension.
+Most "recommendation engines" in portfolios are collaborative filtering wrappers around scikit-learn. CineSense AI is different. It is being built the way a production ML system is built: real vector store, proper sentence-level chunking via NLTK, compound metadata filtering, and a retrieval pipeline heading toward a live browser extension.
 
 The goal is not to demonstrate that you can use a library. The goal is to build something that works in the real world.
 
@@ -61,8 +59,6 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 
 ## Build Log — Day by Day
 
-This section is updated with every commit. Each day adds one layer to the pipeline.
-
 ---
 
 ### Day 1 — Data Foundation and Exploration
@@ -70,19 +66,14 @@ This section is updated with every commit. Each day adds one layer to the pipeli
 **Objective:** Load, clean, and understand the dataset before touching any ML.
 
 **What was built:**
-- CSV ingestion with full error handling (`FileNotFoundError`, generic exceptions)
-- Automated null strategy: numerics filled with mean or median (year columns use median to avoid skew from outlier release years), categoricals filled with `"unknown"`
-- EDA dashboard — five production-quality visualizations saved to `04-Visuals/`:
-  - Content type distribution (Movies vs TV Shows) — pie chart
-  - Top 10 content-producing countries — horizontal bar
-  - Top 10 most popular genres (exploded from comma-separated field) — bar chart
-  - Content release growth over time — line chart with area fill
-  - Audience segment distribution by rating — count plot
-- Consistent palette applied: `#2ECC71` green / `#2C3E50` slate
+- CSV ingestion with full error handling
+- Automated null strategy: year columns use median, numeric columns use mean, categoricals filled with `"unknown"`
+- EDA dashboard — five visualizations saved to `04-Visuals/`: content type pie, top countries bar, top genres bar, release growth line chart, rating distribution count plot
+- Consistent palette: `#2ECC71` green / `#2C3E50` slate across all plots
 
 **Key decisions:**
-- Genre extraction uses `.str.split(',').explode()` — each title belongs to multiple genres stored in one field
-- Year-based nulls use median not mean — resistant to outlier release years pulling the imputed value
+- Genre extraction uses `.str.split(',').explode()` — each title belongs to multiple genres stored in a single comma-separated field
+- Year nulls use median not mean — resistant to outlier release years skewing the imputed value
 
 ---
 
@@ -91,26 +82,25 @@ This section is updated with every commit. Each day adds one layer to the pipeli
 **Objective:** Convert text into dense vectors and store them in a queryable vector database.
 
 **What was built:**
-- Combined text field: `title + director + cast + listed_in + description` per title
+- Combined text field construction: `title + director + cast + listed_in + description`
 - Embeddings via `SentenceTransformer("all-MiniLM-L6-v2")` — 384-dimensional dense vectors
-- ChromaDB collection with full metadata per document: `title`, `type`, `country`, `release_year`, `added_year`, `rating`, `listed_in`, `description`
-- `added_year` parsed separately from `date_added` field (fallback: `release_year`)
+- ChromaDB collection with full metadata per document: `title`, `type`, `country`, `release_year`, `added_year`, `rating`, `listed_in`
 - Batch insert at size 100 to handle the full corpus without memory pressure
 
 **Key decisions:**
-- ChromaDB over FAISS: handles metadata filtering natively — no separate filter layer required
-- `added_year` tracked separately because content added to Netflix years post-release carries different context than its original release year
+- ChromaDB over FAISS: metadata filtering is native — no separate filter layer needed
+- `added_year` tracked separately because content added to Netflix years after its release carries different recommendation context
 
 ---
 
 ### Day 3 — Advanced Retrieval and Filtered Search
 
-**Objective:** Build a compound search function — semantic similarity and structured metadata filters applied simultaneously.
+**Objective:** Semantic similarity plus structured metadata filters applied simultaneously.
 
 **What was built:**
 - `advanced_netflix_search()` with parameters: `genre`, `min_year`, `max_year`, `rating`, `movie_type`, `top_k`
-- Single conditions passed directly to ChromaDB; multiple conditions wrapped in `$and`
-- Filter operators in use: `$contains`, `$gte`, `$lte`, exact match
+- Single conditions passed directly; multiple conditions wrapped in ChromaDB's `$and` operator
+- Filters: `$contains`, `$gte`, `$lte`, `$eq`
 - Four query patterns tested: basic semantic, genre + year, rating + type, year range
 - CSV export via `save_search_results()`
 
@@ -125,26 +115,41 @@ This section is updated with every commit. Each day adds one layer to the pipeli
 
 ---
 
-### Day 4 — Document Chunking
+### Day 4 — Random Chunking (Experimental)
 
-**Objective:** Improve retrieval precision on long documents by splitting at sentence boundaries before embedding.
+**Objective:** First attempt at splitting long documents before embedding.
+
+**What happened:** Built a basic chunking approach manually — word-count splitting without sentence-boundary awareness. Functioned but produced incomplete sentences mid-chunk, which degrades embedding quality. This was a proof-of-concept that led directly to the Day 5 overhaul.
+
+---
+
+### Day 5 — Proper Sentence-Level Chunking
+
+**Objective:** Replace the experimental Day 4 chunking with a linguistically correct implementation. Full code review and refactor across the entire pipeline.
 
 **What was built:**
 
-`chunk_text_by_sentences(text, target_words=400, min_words=100)` — splits any document at natural sentence boundaries using NLTK `sent_tokenize`. Targets 400 words per chunk. Orphaned segments below 100 words are merged into the preceding chunk rather than stored as noise.
+`sentence_chunk(text, max_sentences=2)` — splits combined text using NLTK's `sent_tokenize` for true sentence-boundary detection. Chunks contain exactly 2 complete sentences. No mid-sentence cuts.
 
-`should_chunk(text, max_words=500)` — gate function. Documents under 500 words skip chunking entirely. The majority of Netflix descriptions are short — this preserves performance where chunking adds no value.
+The full pipeline was reviewed and refactored:
+- All type hints added to functions
+- Metadata values explicitly cast to correct types (`int`, `str`) before ChromaDB insert — prevents type mismatch errors at query time
+- Chunk IDs migrated to `show_id_chunk_N` format — unique, traceable, human-readable
+- `advanced_netflix_search()` upgraded: added deduplication so each title appears at most once in results, and displays the matching chunk text for full retrieval transparency
+- `fill_missing()` extracted as a named, typed function rather than an anonymous loop
+- All magic numbers (`GREEN`, `SLATE`, `BATCH_SIZE`) extracted as named constants
+- Code style normalized: consistent spacing, naming, and section headers throughout
 
-Metadata schema extended with `chunk_index` and `total_chunks` per vector. IDs migrated from `show_id` to `chunk_{i}` format to handle the one-to-many title-to-chunk relationship.
+**Day 4 vs Day 5 chunking comparison:**
 
-**Design decisions:**
-
-| Decision | Reason |
-|---|---|
-| Sentence-boundary split over fixed-word split | Preserves grammatical completeness — critical for meaningful embeddings |
-| 500-word gate | Most descriptions are short; chunking them adds overhead with no retrieval benefit |
-| Merge short trailing segments | Prevents low-signal orphan chunks from polluting results |
-| `chunk_index` + `total_chunks` in metadata | Enables future LLM re-ranking to reconstruct full document context |
+| Aspect | Day 4 | Day 5 |
+|---|---|---|
+| Split strategy | Word-count fixed window | Sentence-boundary detection |
+| Library | Manual slicing | NLTK `sent_tokenize` |
+| Sentence integrity | Cuts mid-sentence | Always complete sentences |
+| Chunk ID format | `chunk_{i}` | `{show_id}_chunk_{N}` |
+| Metadata typing | Implicit | Explicit cast per field |
+| Result deduplication | None | Title-level dedup in retrieval |
 
 ---
 
@@ -152,9 +157,9 @@ Metadata schema extended with `chunk_index` and `total_chunks` per vector. IDs m
 
 | Day | Planned |
 |---|---|
-| Day 5 | LLM integration — re-rank results, natural language answer generation |
-| Day 6 | FastAPI layer — REST endpoint wrapping the full search pipeline |
-| Day 7+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
+| Day 6 | LLM integration — re-rank results, natural language answer generation |
+| Day 7 | FastAPI layer — REST endpoint wrapping the full search pipeline |
+| Day 8+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
 
 ---
 
@@ -182,7 +187,7 @@ cd CineSense-AI
 pip install pandas numpy matplotlib seaborn sentence-transformers chromadb nltk
 ```
 
-Place `netflix_titles.csv` in `01-Data/` then open `03-Core/day4_chunking.ipynb` and run all cells.
+Place `netflix_titles.csv` in `01-Data/` then open `03-Core/day5_sentence_chunking.ipynb` and run all cells.
 
 ```python
 results = advanced_netflix_search(
@@ -198,9 +203,7 @@ results = advanced_netflix_search(
 
 ## Learn RAG From Scratch
 
-CineSense AI is built on top of a RAG foundation. To understand how the embedding pipeline works before jumping into this repo:
-
-**[Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG)** — annotated notebooks covering the complete pipeline from one-hot encoding through SentenceTransformers, built for progressive learning.
+**[Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG)** — annotated notebooks covering the full embedding pipeline from one-hot encoding through SentenceTransformers, built for progressive learning.
 
 ---
 
