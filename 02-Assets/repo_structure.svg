@@ -1,122 +1,133 @@
-<svg width="100%" viewBox="0 0 680 580" role="img" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" viewBox="0 0 680 600" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>CineSense AI repository structure</title>
-<desc>Folder tree: 01-Data, 02-Assets, 03-Core notebooks, 04-Visuals, app.py</desc>
+<desc>Folder tree for CineSense-AI project</desc>
 <defs>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .th  { font-size: 14px; font-weight: 600; }
-    .ts  { font-size: 12px; font-weight: 400; }
     .mono { font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace; font-size: 13px; }
     .mono-sm { font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace; font-size: 12px; }
     .tag { font-family: 'SFMono-Regular', monospace; font-size: 10px; font-weight: 700; }
+    .dim { font-family: 'SFMono-Regular', monospace; font-size: 12px; }
   </style>
 </defs>
 
 <!-- outer card -->
-<rect x="12" y="12" width="656" height="556" rx="14" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+<rect x="12" y="12" width="656" height="576" rx="14" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
 
 <!-- header bar -->
 <rect x="12" y="12" width="656" height="48" rx="14" fill="#161b22" stroke="none"/>
 <rect x="12" y="40" width="656" height="20" fill="#161b22" stroke="none"/>
 <rect x="12" y="56" width="656" height="4" fill="#0d1117" stroke="none"/>
 <line x1="12" y1="60" x2="668" y2="60" stroke="#30363d" stroke-width="0.5"/>
-
-<!-- window dots -->
 <circle cx="40" cy="36" r="6" fill="#ff5f57"/>
 <circle cx="60" cy="36" r="6" fill="#febc2e"/>
 <circle cx="80" cy="36" r="6" fill="#28c840"/>
-
-<!-- header title -->
 <text x="340" y="40" text-anchor="middle" font-family="'SFMono-Regular',monospace" font-size="11" fill="#8b949e">CineSense-AI — repository structure</text>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- ROOT -->
-<!-- ═══════════════════════════════════════════ -->
 <text x="56" y="96" class="mono" font-weight="700" fill="#e6edf3">CineSense-AI/</text>
 
-<!-- vertical trunk line -->
-<line x1="68" y1="104" x2="68" y2="504" stroke="#30363d" stroke-width="1"/>
+<!-- trunk line — runs from root down past last folder -->
+<line x1="68" y1="105" x2="68" y2="510" stroke="#30363d" stroke-width="1"/>
 
-<!-- ═══ 01-Data ═══ -->
-<line x1="68" y1="128" x2="88" y2="128" stroke="#30363d" stroke-width="1"/>
-<rect x="92" y="116" width="116" height="26" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
-<text x="104" y="133" class="mono-sm" font-weight="600" fill="#79c0ff">01-Data/</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- 01-Data -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="124" x2="92" y2="124" stroke="#30363d" stroke-width="1"/>
+<rect x="96" y="112" width="110" height="24" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="108" y="128" class="mono-sm" font-weight="600" fill="#79c0ff">01-Data/</text>
 
-<!-- 01-Data children -->
-<line x1="108" y1="142" x2="108" y2="164" stroke="#21262d" stroke-width="1"/>
-<line x1="108" y1="156" x2="126" y2="156" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="161" class="mono-sm" fill="#8b949e">netflix_titles.csv</text>
-<rect x="304" y="147" width="88" height="18" rx="9" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
-<text x="348" y="159" text-anchor="middle" class="tag" fill="#3fb950">8,800+ rows</text>
+<!-- children of 01-Data -->
+<line x1="114" y1="136" x2="114" y2="174" stroke="#21262d" stroke-width="1"/>
 
-<!-- ═══ 02-Assets ═══ -->
-<line x1="68" y1="192" x2="88" y2="192" stroke="#30363d" stroke-width="1"/>
-<rect x="92" y="180" width="128" height="26" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
-<text x="104" y="197" class="mono-sm" font-weight="600" fill="#79c0ff">02-Assets/</text>
+<line x1="114" y1="148" x2="132" y2="148" stroke="#21262d" stroke-width="1"/>
+<text x="138" y="153" class="mono-sm" fill="#8b949e">netflix_titles.csv</text>
+<rect x="302" y="140" width="68" height="17" rx="8" fill="#2a0f0f" stroke="#da3633" stroke-width="0.5"/>
+<text x="336" y="151" text-anchor="middle" class="tag" fill="#f85149">raw / dirty</text>
 
-<!-- 02-Assets children -->
-<line x1="108" y1="206" x2="108" y2="250" stroke="#21262d" stroke-width="1"/>
-<line x1="108" y1="218" x2="126" y2="218" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="223" class="mono-sm" fill="#8b949e">Cinesense Github Design.jpg</text>
-<rect x="388" y="211" width="66" height="18" rx="9" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
-<text x="421" y="223" text-anchor="middle" class="tag" fill="#a5a0f0">banner</text>
+<line x1="114" y1="168" x2="132" y2="168" stroke="#21262d" stroke-width="1"/>
+<text x="138" y="173" class="mono-sm" fill="#8b949e">netflix_titles_clean.csv</text>
+<rect x="338" y="160" width="56" height="17" rx="8" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
+<text x="366" y="171" text-anchor="middle" class="tag" fill="#3fb950">cleaned</text>
 
-<line x1="108" y1="234" x2="126" y2="234" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="239" class="mono-sm" fill="#8b949e">architecture.svg</text>
-<rect x="280" y="228" width="100" height="18" rx="9" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
-<text x="330" y="240" text-anchor="middle" class="tag" fill="#a5a0f0">pipeline img</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- 02-Assets -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="202" x2="92" y2="202" stroke="#30363d" stroke-width="1"/>
+<rect x="96" y="190" width="120" height="24" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="108" y="206" class="mono-sm" font-weight="600" fill="#79c0ff">02-Assets/</text>
+<text x="224" y="206" class="dim" fill="#484f58">banners, diagrams, images</text>
 
-<line x1="108" y1="250" x2="126" y2="250" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="255" class="mono-sm" fill="#8b949e">repo_structure.svg</text>
-<rect x="300" y="244" width="94" height="18" rx="9" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
-<text x="347" y="256" text-anchor="middle" class="tag" fill="#a5a0f0">this image</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- 03-Core -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="238" x2="92" y2="238" stroke="#30363d" stroke-width="1"/>
+<rect x="96" y="226" width="108" height="24" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="108" y="242" class="mono-sm" font-weight="600" fill="#79c0ff">03-Core/</text>
 
-<!-- ═══ 03-Core ═══ -->
-<line x1="68" y1="284" x2="88" y2="284" stroke="#30363d" stroke-width="1"/>
-<rect x="92" y="272" width="108" height="26" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
-<text x="104" y="289" class="mono-sm" font-weight="600" fill="#79c0ff">03-Core/</text>
+<!-- children of 03-Core -->
+<line x1="114" y1="250" x2="114" y2="292" stroke="#21262d" stroke-width="1"/>
 
-<!-- 03-Core children -->
-<line x1="108" y1="298" x2="108" y2="408" stroke="#21262d" stroke-width="1"/>
+<line x1="114" y1="262" x2="132" y2="262" stroke="#21262d" stroke-width="1"/>
+<text x="138" y="267" class="mono-sm" fill="#8b949e">ingestion.py</text>
+<rect x="252" y="254" width="240" height="17" rx="8" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
+<text x="372" y="265" text-anchor="middle" class="tag" fill="#a5a0f0">end-to-end pipeline → ChromaDB</text>
 
-<line x1="108" y1="310" x2="126" y2="310" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="315" class="mono-sm" fill="#8b949e">day1_eda.ipynb</text>
-<rect x="280" y="304" width="108" height="18" rx="9" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
-<text x="334" y="316" text-anchor="middle" class="tag" fill="#3fb950">Day 1 — EDA</text>
+<line x1="114" y1="286" x2="132" y2="286" stroke="#21262d" stroke-width="1"/>
+<text x="138" y="291" class="mono-sm" fill="#8b949e">rag_engine.py</text>
+<rect x="258" y="278" width="200" height="17" rx="8" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
+<text x="358" y="289" text-anchor="middle" class="tag" fill="#a5a0f0">retrieval pipeline + LLM layer</text>
 
-<line x1="108" y1="330" x2="126" y2="330" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="335" class="mono-sm" fill="#8b949e">day2_embeddings.ipynb</text>
-<rect x="316" y="324" width="140" height="18" rx="9" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
-<text x="386" y="336" text-anchor="middle" class="tag" fill="#3fb950">Day 2 — Embeddings</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- 04-Visuals -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="322" x2="92" y2="322" stroke="#30363d" stroke-width="1"/>
+<rect x="96" y="310" width="124" height="24" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="108" y="326" class="mono-sm" font-weight="600" fill="#79c0ff">04-Visuals/</text>
+<text x="228" y="326" class="dim" fill="#484f58">EDA charts, bar graphs</text>
 
-<line x1="108" y1="350" x2="126" y2="350" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="355" class="mono-sm" fill="#8b949e">day3_retrieval.ipynb</text>
-<rect x="308" y="344" width="132" height="18" rx="9" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
-<text x="374" y="356" text-anchor="middle" class="tag" fill="#3fb950">Day 3 — Retrieval</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- app.py -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="376" x2="92" y2="376" stroke="#30363d" stroke-width="1"/>
+<text x="96" y="381" class="mono-sm" font-weight="600" fill="#e6edf3">app.py</text>
+<rect x="162" y="368" width="178" height="17" rx="8" fill="#1f2d1f" stroke="#3fb950" stroke-width="0.5"/>
+<text x="251" y="379" text-anchor="middle" class="tag" fill="#3fb950">Streamlit UI — in progress</text>
 
-<line x1="108" y1="370" x2="126" y2="370" stroke="#21262d" stroke-width="1"/>
-<text x="132" y="375" class="mono-sm" fill="#8b949e">day4_chunking.ipynb</text>
-<rect x="308" y="364" width="132" height="18" rx="9" fill="#2a1f0a" stroke="#9e6a03" stroke-width="0.5"/>
-<text x="374" y="376" text-anchor="middle" class="tag" fill="#e3b341">Day 4 — Chunking</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- requirements.txt -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="414" x2="92" y2="414" stroke="#30363d" stroke-width="1"/>
+<text x="96" y="419" class="mono-sm" font-weight="600" fill="#e6edf3">requirements.txt</text>
+<rect x="246" y="406" width="118" height="17" rx="8" fill="#161b22" stroke="#484f58" stroke-width="0.5"/>
+<text x="305" y="417" text-anchor="middle" class="tag" fill="#8b949e">dependencies</text>
 
-<line x1="108" y1="390" x2="126" y2="390" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3 2"/>
-<text x="132" y="395" class="mono-sm" fill="#484f58">day5_llm.ipynb</text>
-<rect x="264" y="384" width="76" height="18" rx="9" fill="#161b22" stroke="#484f58" stroke-width="0.5"/>
-<text x="302" y="396" text-anchor="middle" class="tag" fill="#484f58">coming soon</text>
+<!-- ═══════════════════════════════════════ -->
+<!-- chrome-extension/ -->
+<!-- ═══════════════════════════════════════ -->
+<line x1="68" y1="452" x2="92" y2="452" stroke="#30363d" stroke-width="1"/>
+<rect x="96" y="440" width="172" height="24" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="108" y="456" class="mono-sm" font-weight="600" fill="#79c0ff">chrome-extension/</text>
+<rect x="278" y="442" width="96" height="17" rx="8" fill="#161b22" stroke="#484f58" stroke-width="0.5" stroke-dasharray="3 2"/>
+<text x="326" y="453" text-anchor="middle" class="tag" fill="#484f58">coming soon</text>
 
-<!-- ═══ 04-Visuals ═══ -->
-<line x1="68" y1="432" x2="88" y2="432" stroke="#30363d" stroke-width="1"/>
-<rect x="92" y="420" width="128" height="26" rx="6" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
-<text x="104" y="437" class="mono-sm" font-weight="600" fill="#79c0ff">04-Visuals/</text>
-<text x="228" y="437" class="mono-sm" fill="#484f58">EDA chart exports</text>
-
-<!-- ═══ app.py (root file) ═══ -->
-<line x1="68" y1="504" x2="88" y2="504" stroke="#30363d" stroke-width="1"/>
-<text x="92" y="509" class="mono-sm" font-weight="600" fill="#e6edf3">app.py</text>
-<rect x="148" y="497" width="88" height="18" rx="9" fill="#1f2d1f" stroke="#3fb950" stroke-width="0.5"/>
-<text x="192" y="509" text-anchor="middle" class="tag" fill="#3fb950">entry point</text>
+<!-- trunk end cap: horizontal line to last item and stop -->
+<line x1="68" y1="452" x2="68" y2="510" stroke="#30363d" stroke-width="1" opacity="0"/>
 
 <!-- bottom rule + footer -->
-<line x1="32" y1="528" x2="648" y2="528" stroke="#30363d" stroke-width="0.5"/>
-<text x="340" y="548" text-anchor="middle" font-family="'SFMono-Regular',monospace" font-size="11" fill="#484f58">github.com/ather-ops/CineSense-AI</text>
+<line x1="32" y1="494" x2="648" y2="494" stroke="#30363d" stroke-width="0.5"/>
+<text x="340" y="516" text-anchor="middle" font-family="'SFMono-Regular',monospace" font-size="11" fill="#484f58">github.com/ather-ops/CineSense-AI</text>
+
+<!-- legend row -->
+<rect x="138" y="530" width="10" height="10" rx="2" fill="#2a0f0f" stroke="#da3633" stroke-width="0.5"/>
+<text x="154" y="539" font-family="'SFMono-Regular',monospace" font-size="10" fill="#8b949e">raw data</text>
+<rect x="228" y="530" width="10" height="10" rx="2" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
+<text x="244" y="539" font-family="'SFMono-Regular',monospace" font-size="10" fill="#8b949e">clean data</text>
+<rect x="320" y="530" width="10" height="10" rx="2" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
+<text x="336" y="539" font-family="'SFMono-Regular',monospace" font-size="10" fill="#8b949e">pipeline</text>
+<rect x="408" y="530" width="10" height="10" rx="2" fill="#1f2d1f" stroke="#3fb950" stroke-width="0.5"/>
+<text x="424" y="539" font-family="'SFMono-Regular',monospace" font-size="10" fill="#8b949e">UI</text>
+<rect x="460" y="530" width="10" height="10" rx="2" fill="#161b22" stroke="#484f58" stroke-width="0.5" stroke-dasharray="3 2"/>
+<text x="476" y="539" font-family="'SFMono-Regular',monospace" font-size="10" fill="#8b949e">upcoming</text>
+
 </svg>
