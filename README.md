@@ -44,7 +44,7 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 ## Pipeline Architecture
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ather-ops/CineSense-AI/main/02-Assets/architecture.svg" alt="CineSense AI Pipeline Architecture" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture.svg" alt="CineSense AI Pipeline Architecture" width="72%" />
 </div>
 
 ---
