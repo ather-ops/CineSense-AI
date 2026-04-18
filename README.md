@@ -52,7 +52,7 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 ## Repository Structure
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ather-ops/CineSense-AI/main/02-Assets/repo_structure.svg" alt="CineSense AI Repository Structure" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/repo_structure.svg" alt="CineSense AI Repository Structure" width="72%" />
 </div>
 
 ---
@@ -157,9 +157,9 @@ The full pipeline was reviewed and refactored:
 
 | Day | Planned |
 |---|---|
-| Day 6 | LLM integration — re-rank results, natural language answer generation |
-| Day 7 | FastAPI layer — REST endpoint wrapping the full search pipeline |
-| Day 8+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
+| Day 6-7 | LLM integration — re-rank results, natural language answer generation |
+| Day 8-14 | FastAPI layer — REST endpoint wrapping the full search pipeline |
+| Day 14+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
 
 ---
 
