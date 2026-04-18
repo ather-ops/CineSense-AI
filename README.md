@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/CineSense-AI.png" alt="CineSense AI Banner" width="100%" />
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/CineSense-AI.png?raw=true" alt="CineSense AI Banner" width="100%" />
 
 <br/>
 <br/>
@@ -17,7 +17,7 @@
 
 <br/>
 
-> **Semantic search for Netflix — powered by proper sentence-level chunking, vector embeddings, and ChromaDB. Built daily. Shipping as a Chrome Extension.**
+> **Semantic search for Netflix — powered by sentence-level chunking, vector embeddings, and ChromaDB. Built daily. Shipping as a Chrome Extension.**
 
 </div>
 
@@ -44,7 +44,7 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 ## Pipeline Architecture
 
 <div align="center">
-  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture.svg" alt="CineSense AI Pipeline Architecture" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture.svg?raw=true" alt="CineSense AI Pipeline Architecture" width="72%" />
 </div>
 
 ---
@@ -52,8 +52,51 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 ## Repository Structure
 
 <div align="center">
-  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/repo_structure1.svg" alt="CineSense AI Repository Structure" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/repo_structure1.svg?raw=true" alt="CineSense AI Repository Structure" width="72%" />
 </div>
+
+---
+
+## Roadmap and Priorities
+
+Work is executed in strict priority order. The next item on this list is always the only item being worked on.
+
+| Priority | Task | Status |
+|---|---|---|
+| 1 | `ingestion.py` — end-to-end pipeline to ChromaDB, production-ready | In progress |
+| 2 | Unit tests for ingestion — chunking correctness, metadata schema, batch insert | Pending |
+| 3 | `rag_engine.py` — retrieval pipeline with LLM re-ranking layer | Pending |
+| 4 | `app.py` — Streamlit UI wrapping the full search pipeline | Pending |
+| 5 | FastAPI layer — REST endpoint for external access | Pending |
+| 6 | Chrome Extension scaffold — Manifest V3, Netflix DOM injection | Pending |
+| 7 | Chrome Extension UI — live semantic search overlay inside Netflix | Pending |
+
+Progress is tracked commit by commit. Every merge to `main` moves exactly one item from Pending to Done.
+
+---
+
+## Testing
+
+Tests live in `03-Core/tests/`. The goal is to cover the ingestion and retrieval logic before adding any new pipeline layers — not after.
+
+**What is currently tested:**
+
+Tests are being added alongside `ingestion.py` as it is written. The first test suite covers:
+
+- `fill_missing()` — verifies year columns use median, categoricals fill with `"unknown"`, no nulls remain after cleaning
+- `sentence_chunk()` — verifies chunks never exceed `max_sentences`, all chunks are non-empty strings, complete sentences are preserved
+- ChromaDB insert — verifies chunk count matches expected, metadata fields are present and correctly typed, IDs follow `show_id_chunk_N` format
+
+**Why tests are being written now, not later:**
+
+Ingestion logic is the foundation everything else depends on. If `sentence_chunk` silently cuts sentences mid-word, or if metadata types cause `$gte` filters to fail at query time, those bugs compound through every layer above. Catching them at the ingestion layer costs one test. Catching them at the Chrome Extension layer costs days.
+
+**Running the tests:**
+
+```bash
+pip install pytest
+pytest 03-Core/tests/ -v
+```
 
 ---
 
@@ -89,7 +132,7 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 
 **Key decisions:**
 - ChromaDB over FAISS: metadata filtering is native — no separate filter layer needed
-- `added_year` tracked separately because content added to Netflix years after its release carries different recommendation context
+- `added_year` tracked separately because content added to Netflix years after release carries different recommendation context
 
 ---
 
@@ -119,11 +162,11 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 
 **Objective:** First attempt at splitting long documents before embedding.
 
-**What happened:** Built a basic chunking approach manually — word-count splitting without sentence-boundary awareness. Functioned but produced incomplete sentences mid-chunk, which degrades embedding quality. This was a proof-of-concept that led directly to the Day 5 overhaul.
+**What happened:** Built a basic chunking approach manually — word-count splitting without sentence-boundary awareness. Functioned but produced incomplete sentences mid-chunk, which degrades embedding quality. This was a deliberate proof-of-concept iteration that led directly to the Day 5 overhaul.
 
 ---
 
-### Day 5 — Proper Sentence-Level Chunking
+### Day 5 — Proper Sentence-Level Chunking and Full Refactor
 
 **Objective:** Replace the experimental Day 4 chunking with a linguistically correct implementation. Full code review and refactor across the entire pipeline.
 
@@ -131,14 +174,13 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 
 `sentence_chunk(text, max_sentences=2)` — splits combined text using NLTK's `sent_tokenize` for true sentence-boundary detection. Chunks contain exactly 2 complete sentences. No mid-sentence cuts.
 
-The full pipeline was reviewed and refactored:
-- All type hints added to functions
-- Metadata values explicitly cast to correct types (`int`, `str`) before ChromaDB insert — prevents type mismatch errors at query time
+Full pipeline refactor:
+- Type hints added to all functions
+- Metadata values explicitly cast (`int`, `str`) before ChromaDB insert — prevents type mismatch errors at query time
 - Chunk IDs migrated to `show_id_chunk_N` format — unique, traceable, human-readable
-- `advanced_netflix_search()` upgraded: added deduplication so each title appears at most once in results, and displays the matching chunk text for full retrieval transparency
-- `fill_missing()` extracted as a named, typed function rather than an anonymous loop
-- All magic numbers (`GREEN`, `SLATE`, `BATCH_SIZE`) extracted as named constants
-- Code style normalized: consistent spacing, naming, and section headers throughout
+- `advanced_netflix_search()` upgraded with title-level deduplication and matching chunk preview display
+- `fill_missing()` extracted as a named typed function
+- Magic values extracted as named constants: `GREEN`, `SLATE`, `BATCH_SIZE`
 
 **Day 4 vs Day 5 chunking comparison:**
 
@@ -153,16 +195,6 @@ The full pipeline was reviewed and refactored:
 
 ---
 
-### Coming Next
-
-| Day | Planned |
-|---|---|
-| Day 6-7 | LLM integration — re-rank results, natural language answer generation |
-| Day 8-14 | FastAPI layer — REST endpoint wrapping the full search pipeline |
-| Day 14+ | Chrome Extension scaffold, Netflix DOM injection, live overlay UI |
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -173,7 +205,8 @@ The full pipeline was reviewed and refactored:
 | Tokenization | NLTK `sent_tokenize` |
 | Embeddings | SentenceTransformers `all-MiniLM-L6-v2` |
 | Vector Store | ChromaDB |
-| Entry Point | `app.py` |
+| Testing | pytest |
+| UI (upcoming) | Streamlit |
 | API (upcoming) | FastAPI |
 | Extension (upcoming) | Chrome Extension Manifest V3 |
 
@@ -184,12 +217,20 @@ The full pipeline was reviewed and refactored:
 ```bash
 git clone https://github.com/ather-ops/CineSense-AI.git
 cd CineSense-AI
-pip install pandas numpy matplotlib seaborn sentence-transformers chromadb nltk
+pip install -r requirements.txt
 ```
 
-Place `netflix_titles.csv` in `01-Data/` then open `03-Core/day5_sentence_chunking.ipynb` and run all cells.
+Place `netflix_titles.csv` in `01-Data/` then run:
+
+```bash
+python 03-Core/ingestion.py
+```
+
+To run a search:
 
 ```python
+from 03-Core.rag_engine import advanced_netflix_search
+
 results = advanced_netflix_search(
     collection, model,
     query_text="psychological thriller with a twist ending",
