@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/ather-ops/CineSense-AI/main/02-Assets/Cinesense%20Github%20Design.jpg" alt="CineSense AI Banner" width="100%" />
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/CineSense-AI.png" alt="CineSense AI Banner" width="100%" />
 
 <br/>
 <br/>
