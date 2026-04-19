@@ -52,7 +52,7 @@ The goal is not to demonstrate that you can use a library. The goal is to build 
 ## Repository Structure
 
 <div align="center">
-  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/repo_structure1.svg?raw=true" alt="CineSense AI Repository Structure" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/Repo-Struture.png" alt="CineSense AI Repository Structure" width="72%" />
 </div>
 
 ---
