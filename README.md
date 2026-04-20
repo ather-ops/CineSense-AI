@@ -51,7 +51,7 @@ Most "recommendation engines" in portfolios are collaborative filtering wrappers
 ## Repository Structure
 
 <div align="center">
-  <img src=" https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/Repo-Struture.png" alt="CineSense AI Repository Structure" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/Repo-Struture.png" alt="CineSense AI Repository Structure" width="72%" />
 </div>
 
 ---
