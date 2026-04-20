@@ -1,10 +1,10 @@
-print("=" * 80)
-print("  CineSense AI — Day 5: Sentence-Level Chunking  |  by ather-ops")
-print("=" * 80)
+# =============================================================================
+# CineSense AI — ingestion.py
+# End-to-end pipeline: raw CSV → sentence chunking → embeddings → ChromaDB
+# Author: ather-ops
+# =============================================================================
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 1: Import libraries
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Step 1: Imports ──────────────────────────────────────────────────────────
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -19,40 +19,36 @@ from nltk.tokenize import sent_tokenize
 from sentence_transformers import SentenceTransformer
 import chromadb
 
-nltk.download("punkt", quiet=True)
+nltk.download("punkt",     quiet=True)
 nltk.download("punkt_tab", quiet=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 2: Load data
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    df = pd.read_csv("netflix_titles.csv")
-    print(f"\nDataset loaded — {len(df):,} rows, {df.shape[1]} columns")
-    print(df.head())
-except FileNotFoundError:
-    print("Error: netflix_titles.csv not found. Place it in the working directory.")
-    exit()
-except Exception as e:
-    print(f"Unexpected error loading data: {e}")
-    exit()
+# ── Constants ─────────────────────────────────────────────────────────────────
+DATA_PATH    = "01-Data/netflix_titles.csv"
+CHROMA_PATH  = "./chroma_data"
+COLLECTION   = "netflix_titles"
+EMBED_MODEL  = "all-MiniLM-L6-v2"
+BATCH_SIZE   = 100
+MAX_SENT     = 2
+GREEN        = "#2ECC71"
+SLATE        = "#2C3E50"
+PURPLE       = "#EE22CC"
 
-print("\n" + "=" * 60)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 3: Basic EDA
-# ─────────────────────────────────────────────────────────────────────────────
-print("\nDataset info:")
-print(df.info())
-print("\nDescriptive statistics:")
-print(df.describe())
-print("\nMissing values per column:")
-print(df.isnull().sum())
-print(f"\nDuplicate rows: {df.duplicated().sum()}")
-print("\nColumns:", df.columns.tolist())
+# ── Step 2: Load data ─────────────────────────────────────────────────────────
+def load_data(path: str) -> pd.DataFrame:
+    try:
+        df = pd.read_csv(path)
+        print(f"Dataset loaded — {len(df):,} rows, {df.shape[1]} columns")
+        return df
+    except FileNotFoundError:
+        print(f"Error: {path} not found. Place the CSV in 01-Data/.")
+        raise
+    except Exception as e:
+        print(f"Unexpected error loading data: {e}")
+        raise
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 4: Fill missing values
-# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Step 3: Clean missing values ──────────────────────────────────────────────
 def fill_missing(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.columns:
         if df[col].dtype in ["int64", "float64"]:
@@ -62,262 +58,161 @@ def fill_missing(df: pd.DataFrame) -> pd.DataFrame:
             df[col] = df[col].fillna("unknown")
     return df
 
-df = fill_missing(df)
-print("\nMissing values after cleaning:")
-print(df.isnull().sum())
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 5: EDA visualizations
-# ─────────────────────────────────────────────────────────────────────────────
-sns.set_theme(style="whitegrid")
-GREEN  = "#2ECC71"
-PURPLE = "#EE22CC"
-SLATE  = "#2C3E50"
+# ── Step 4: EDA visualizations ───────────────────────────────────────────────
+def run_eda(df: pd.DataFrame) -> None:
+    sns.set_theme(style="whitegrid")
 
-# Graph 1 — Content type distribution
-plt.figure(figsize=(8, 6))
-plt.pie(df["type"].value_counts(), labels=df["type"].value_counts().index, autopct="%1.1f%%")
-plt.title("Content Type: Movies vs TV Shows", fontweight="bold", color=SLATE)
-plt.ylabel("Number of Titles")
+    # Content type distribution
+    plt.figure(figsize=(8, 6))
+    plt.pie(df["type"].value_counts(), labels=df["type"].value_counts().index, autopct="%1.1f%%")
+    plt.title("Content Type: Movies vs TV Shows", fontweight="bold", color=SLATE)
+    plt.savefig("04-Visuals/content_type.png", bbox_inches="tight")
 
-# Graph 2 — Top 10 content-producing countries
-plt.figure(figsize=(10, 6))
-top_countries = df[df["country"] != "unknown"]["country"].value_counts().head(10)
-sns.barplot(x=top_countries.values, y=top_countries.index,
-            hue=top_countries.index, palette="Greens", legend=False)
-plt.title("Top 10 Content-Producing Countries", fontweight="bold", color=SLATE)
-plt.xlabel("Number of Titles")
+    # Top 10 countries
+    plt.figure(figsize=(10, 6))
+    top_countries = df[df["country"] != "unknown"]["country"].value_counts().head(10)
+    sns.barplot(x=top_countries.values, y=top_countries.index,
+                hue=top_countries.index, palette="Greens", legend=False)
+    plt.title("Top 10 Content-Producing Countries", fontweight="bold", color=SLATE)
+    plt.xlabel("Number of Titles")
+    plt.savefig("04-Visuals/top_countries.png", bbox_inches="tight")
 
-# Graph 3 — Top 10 genres
-plt.figure(figsize=(10, 6))
-genre_counts = df["listed_in"].str.split(",").explode().value_counts().head(10)
-sns.barplot(x=genre_counts.values, y=genre_counts.index,
-            hue=genre_counts.index, palette="dark:#EE22CC", legend=False)
-plt.title("Top 10 Most Popular Genres", fontweight="bold", color=SLATE)
-plt.xlabel("Count")
+    # Top 10 genres
+    plt.figure(figsize=(10, 6))
+    genre_counts = df["listed_in"].str.split(",").explode().value_counts().head(10)
+    sns.barplot(x=genre_counts.values, y=genre_counts.index,
+                hue=genre_counts.index, palette=f"dark:#{PURPLE[1:]}", legend=False)
+    plt.title("Top 10 Most Popular Genres", fontweight="bold", color=SLATE)
+    plt.xlabel("Count")
+    plt.savefig("04-Visuals/top_genres.png", bbox_inches="tight")
 
-# Graph 4 — Content release growth over time
-plt.figure(figsize=(12, 6))
-yearly = df.groupby("release_year")["show_id"].count().reset_index()
-sns.lineplot(data=yearly, x="release_year", y="show_id",
-             marker="o", color=GREEN, linewidth=3)
-plt.fill_between(yearly["release_year"], yearly["show_id"], color=GREEN, alpha=0.15)
-plt.title("Content Release Growth Over the Years", fontweight="bold", color=SLATE)
-plt.xlabel("Year")
-plt.ylabel("Total Titles")
+    # Release growth over time
+    plt.figure(figsize=(12, 6))
+    yearly = df.groupby("release_year")["show_id"].count().reset_index()
+    sns.lineplot(data=yearly, x="release_year", y="show_id",
+                 marker="o", color=GREEN, linewidth=3)
+    plt.fill_between(yearly["release_year"], yearly["show_id"], color=GREEN, alpha=0.15)
+    plt.title("Content Release Growth Over the Years", fontweight="bold", color=SLATE)
+    plt.xlabel("Year")
+    plt.ylabel("Total Titles")
+    plt.savefig("04-Visuals/release_growth.png", bbox_inches="tight")
 
-# Graph 5 — Rating distribution
-plt.figure(figsize=(10, 6))
-rating_order = df["rating"].value_counts().index
-sns.countplot(data=df, x="rating", order=rating_order,
-              palette="dark:#2ECC71", hue="rating", legend=False)
-plt.title("Audience Segment Distribution", fontweight="bold", color=SLATE)
-plt.xlabel("Rating Category")
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+    # Rating distribution
+    plt.figure(figsize=(10, 6))
+    rating_order = df["rating"].value_counts().index
+    sns.countplot(data=df, x="rating", order=rating_order,
+                  palette=f"dark:#{GREEN[1:]}", hue="rating", legend=False)
+    plt.title("Audience Segment Distribution", fontweight="bold", color=SLATE)
+    plt.xlabel("Rating Category")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("04-Visuals/rating_distribution.png", bbox_inches="tight")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 6: Sentence-level chunking  (Day 5 core upgrade)
-# ─────────────────────────────────────────────────────────────────────────────
-def sentence_chunk(text: str, max_sentences: int = 2) -> list[str]:
+    plt.show()
+    print("EDA charts saved to 04-Visuals/")
+
+
+# ── Step 5: Sentence-level chunking ──────────────────────────────────────────
+def sentence_chunk(text: str, max_sentences: int = MAX_SENT) -> list[str]:
     """
-    Split text into chunks of max_sentences sentences each.
-    Uses NLTK sent_tokenize for proper sentence boundary detection.
-
-    Args:
-        text: The input string to chunk.
-        max_sentences: Maximum number of sentences per chunk.
-
-    Returns:
-        List of text chunks.
+    Split text into chunks of max_sentences complete sentences each.
+    Uses NLTK sent_tokenize for proper sentence-boundary detection.
     """
     sentences = sent_tokenize(text)
-    chunks = []
-    for i in range(0, len(sentences), max_sentences):
-        chunk = " ".join(sentences[i : i + max_sentences])
-        chunks.append(chunk)
-    return chunks
-
-
-print("\n" + "=" * 60)
-print("Step 6 — Building sentence-level chunks")
-print("=" * 60)
-
-all_chunks: list[str] = []
-metadata_chunks: list[dict] = []
-
-for _, row in df.iterrows():
-    parts = [
-        str(row["title"])       if pd.notnull(row["title"])       else "",
-        str(row["director"])    if pd.notnull(row["director"])    else "",
-        str(row["cast"])        if pd.notnull(row["cast"])        else "",
-        str(row["listed_in"])   if pd.notnull(row["listed_in"])   else "",
-        str(row["description"]) if pd.notnull(row["description"]) else "",
+    return [
+        " ".join(sentences[i : i + max_sentences])
+        for i in range(0, len(sentences), max_sentences)
     ]
-    combined = " ".join(parts).strip()
 
-    chunks = sentence_chunk(combined, max_sentences=2)
-    for chunk_idx, chunk in enumerate(chunks):
-        all_chunks.append(chunk)
-        metadata_chunks.append({
-            "show_id":      str(row["show_id"]),
-            "title":        str(row["title"]),
-            "type":         str(row["type"]),
-            "country":      str(row["country"]),
-            "release_year": int(row["release_year"]),
-            "rating":       str(row["rating"]),
-            "listed_in":    str(row["listed_in"]),
-            "chunk_index":  chunk_idx,
-            "total_chunks": len(chunks),
-        })
 
-print(f"Original documents : {len(df):,}")
-print(f"Total chunks       : {len(all_chunks):,}")
-avg_words = sum(len(c.split()) for c in all_chunks) / len(all_chunks)
-print(f"Avg words per chunk: {avg_words:.1f}")
+def build_chunks(df: pd.DataFrame) -> tuple[list[str], list[dict]]:
+    """
+    Build sentence-level chunks from combined per-row text fields.
+    Returns parallel lists: chunk texts and their metadata dicts.
+    """
+    all_chunks:      list[str]  = []
+    metadata_chunks: list[dict] = []
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 7: Generate embeddings
-# ─────────────────────────────────────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("Step 7 — Generating embeddings")
-print("=" * 60)
+    for _, row in df.iterrows():
+        combined = " ".join([
+            str(row["title"])       if pd.notnull(row["title"])       else "",
+            str(row["director"])    if pd.notnull(row["director"])    else "",
+            str(row["cast"])        if pd.notnull(row["cast"])        else "",
+            str(row["listed_in"])   if pd.notnull(row["listed_in"])   else "",
+            str(row["description"]) if pd.notnull(row["description"]) else "",
+        ]).strip()
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+        chunks = sentence_chunk(combined)
+        for idx, chunk in enumerate(chunks):
+            all_chunks.append(chunk)
+            metadata_chunks.append({
+                "show_id":      str(row["show_id"]),
+                "title":        str(row["title"]),
+                "type":         str(row["type"]),
+                "country":      str(row["country"]),
+                "release_year": int(row["release_year"]),
+                "rating":       str(row["rating"]),
+                "listed_in":    str(row["listed_in"]),
+                "chunk_index":  idx,
+                "total_chunks": len(chunks),
+            })
 
-try:
-    embeddings = model.encode(all_chunks, show_progress_bar=True)
-    print(f"Embeddings generated — shape: {embeddings.shape}")
-except Exception as e:
-    print(f"Embedding error: {e}")
-    exit()
+    print(f"Chunking complete — {len(df):,} docs → {len(all_chunks):,} chunks")
+    return all_chunks, metadata_chunks
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 8: Initialise ChromaDB
-# ─────────────────────────────────────────────────────────────────────────────
-client = chromadb.Client()
 
-try:
-    client.delete_collection("netflix_titles")
-except Exception:
-    pass
+# ── Step 6: Generate embeddings ───────────────────────────────────────────────
+def generate_embeddings(chunks: list[str]):
+    model = SentenceTransformer(EMBED_MODEL)
+    print(f"Generating embeddings with {EMBED_MODEL}...")
+    embeddings = model.encode(chunks, show_progress_bar=True)
+    print(f"Embeddings shape: {embeddings.shape}")
+    return model, embeddings
 
-collection = client.create_collection(name="netflix_titles")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 9: Batch insert into ChromaDB
-# ─────────────────────────────────────────────────────────────────────────────
-ids = [f"{meta['show_id']}_chunk_{meta['chunk_index']}" for meta in metadata_chunks]
+# ── Step 7: Store in ChromaDB ─────────────────────────────────────────────────
+def build_vector_store(chunks: list[str], metadata: list[dict], embeddings) -> chromadb.Collection:
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
 
-BATCH_SIZE = 100
-for i in range(0, len(embeddings), BATCH_SIZE):
-    end = i + BATCH_SIZE
-    collection.add(
-        ids=ids[i:end],
-        embeddings=embeddings[i:end].tolist(),
-        metadatas=metadata_chunks[i:end],
-        documents=all_chunks[i:end],
+    try:
+        client.delete_collection(name=COLLECTION)
+    except Exception:
+        pass
+
+    collection = client.create_collection(
+        name=COLLECTION,
+        metadata={"description": "Netflix movies and TV shows — CineSense AI"},
     )
 
-print(f"\nInserted {len(all_chunks):,} chunks into ChromaDB successfully.")
+    ids = [f"{m['show_id']}_chunk_{m['chunk_index']}" for m in metadata]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 10: Advanced semantic search
-# ─────────────────────────────────────────────────────────────────────────────
-def advanced_netflix_search(
-    collection,
-    model,
-    query_text: str,
-    genre: str | None = None,
-    min_year: int | None = None,
-    max_year: int | None = None,
-    rating: str | None = None,
-    movie_type: str | None = None,
-    top_k: int = 5,
-):
-    """
-    Semantic search over the ChromaDB collection with optional metadata filters.
+    for i in range(0, len(embeddings), BATCH_SIZE):
+        end = i + BATCH_SIZE
+        collection.add(
+            ids=ids[i:end],
+            embeddings=embeddings[i:end].tolist(),
+            metadatas=metadata[i:end],
+            documents=chunks[i:end],
+        )
 
-    Supports compound filters via ChromaDB's $and operator.
-    Deduplicates results so each title appears only once in the output.
-    Displays the matching chunk text for transparency.
-    """
-    query_emb = model.encode([query_text])[0]
+    print(f"Inserted {len(chunks):,} chunks into ChromaDB at {CHROMA_PATH}")
+    return collection
 
-    conditions = []
-    if genre:
-        conditions.append({"listed_in": {"$contains": genre}})
-    if min_year:
-        conditions.append({"release_year": {"$gte": min_year}})
-    if max_year:
-        conditions.append({"release_year": {"$lte": max_year}})
-    if rating:
-        conditions.append({"rating": {"$eq": rating}})
-    if movie_type:
-        conditions.append({"type": {"$eq": movie_type}})
 
-    if len(conditions) > 1:
-        where_filter = {"$and": conditions}
-    elif len(conditions) == 1:
-        where_filter = conditions[0]
-    else:
-        where_filter = None
+# ── Main ──────────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    print("=" * 70)
+    print("  CineSense AI — Ingestion Pipeline")
+    print("=" * 70)
 
-    results = collection.query(
-        query_embeddings=[query_emb.tolist()],
-        where=where_filter,
-        n_results=top_k,
-        include=["documents", "metadatas", "distances"],
-    )
+    df                      = load_data(DATA_PATH)
+    df                      = fill_missing(df)
+    run_eda(df)
+    chunks, metadata        = build_chunks(df)
+    embed_model, embeddings = generate_embeddings(chunks)
+    collection              = build_vector_store(chunks, metadata, embeddings)
 
-    print("\n" + "=" * 60)
-    print(f"Query : {query_text}")
-    print("=" * 60)
-
-    if not results["metadatas"][0]:
-        print("No results found. Try adjusting your filters.")
-        return results
-
-    seen_titles: set[str] = set()
-    rank = 1
-    for i, meta in enumerate(results["metadatas"][0]):
-        if meta["title"] in seen_titles:
-            continue
-        seen_titles.add(meta["title"])
-        chunk_preview = results["documents"][0][i][:150].replace("\n", " ")
-        print(f"\n{rank}. {meta['title']}  ({meta['release_year']}) — {meta['rating']}")
-        print(f"   Type   : {meta['type']}  |  Country: {meta['country']}")
-        print(f"   Genre  : {meta['listed_in']}")
-        print(f"   Chunk  : {chunk_preview}...")
-        rank += 1
-
-    return results
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 11: Run test queries
-# ─────────────────────────────────────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("Step 11 — Search Tests")
-print("=" * 60)
-
-advanced_netflix_search(collection, model, "Action Thriller", top_k=3)
-advanced_netflix_search(collection, model, "Romantic Comedy", genre="Romantic", min_year=2020, top_k=3)
-advanced_netflix_search(collection, model, "Documentary", rating="PG-13", movie_type="Movie", top_k=3)
-advanced_netflix_search(collection, model, "Crime Drama", min_year=2019, max_year=2021, top_k=3)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 12: Save results to CSV
-# ─────────────────────────────────────────────────────────────────────────────
-def save_search_results(results, filename: str = "search_results.csv") -> None:
-    if results["metadatas"][0]:
-        pd.DataFrame(results["metadatas"][0]).to_csv(filename, index=False)
-        print(f"\nResults saved to {filename}")
-
-save_search_results(
-    advanced_netflix_search(collection, model, "Action Thriller", genre="Action", min_year=2020, top_k=5)
-)
-
-print("\n" + "=" * 80)
-print("  Day 5 Complete — Sentence-level chunking pipeline fully operational")
-print("=" * 80)
+    print("\n" + "=" * 70)
+    print("  Ingestion complete. ChromaDB ready for rag_engine.py")
+    print("=" * 70)
