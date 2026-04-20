@@ -1,0 +1,109 @@
+<svg width="100%" viewBox="0 0 680 880" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>CineSense AI pipeline architecture — Day 6</title>
+<desc>Nine-stage pipeline: raw CSV, clean, feature engineering, sentence chunking, embeddings, ChromaDB, retrieval, Gemini LLM, ranked answer</desc>
+<defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .th  { font-size: 14px; font-weight: 600; }
+    .ts  { font-size: 12px; font-weight: 400; }
+    .day { font-size: 10px; font-weight: 500; fill: #8b949e; font-family: 'SFMono-Regular', monospace; }
+  </style>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#484f58" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- outer card -->
+<rect x="12" y="12" width="656" height="856" rx="14" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+
+<!-- header bar -->
+<rect x="12" y="12" width="656" height="48" rx="14" fill="#161b22" stroke="none"/>
+<rect x="12" y="40" width="656" height="20" fill="#161b22" stroke="none"/>
+<rect x="12" y="56" width="656" height="4" fill="#0d1117" stroke="none"/>
+<line x1="12" y1="60" x2="668" y2="60" stroke="#30363d" stroke-width="0.5"/>
+<circle cx="40" cy="36" r="6" fill="#ff5f57"/>
+<circle cx="60" cy="36" r="6" fill="#febc2e"/>
+<circle cx="80" cy="36" r="6" fill="#28c840"/>
+<text x="340" y="40" text-anchor="middle" font-family="monospace" font-size="11" fill="#8b949e">CineSense AI — pipeline architecture — Day 6</text>
+
+<!-- ── STAGE 1: raw data ── -->
+<text x="38" y="100" text-anchor="middle" class="day">DAY 1</text>
+<rect x="190" y="82" width="300" height="44" rx="8" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="340" y="99" text-anchor="middle" dominant-baseline="central" class="th" fill="#e6edf3">netflix_titles.csv</text>
+<text x="340" y="117" text-anchor="middle" dominant-baseline="central" class="ts" fill="#8b949e">8,800+ titles — raw source</text>
+<line x1="340" y1="126" x2="340" y2="152" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 2: clean + EDA ── -->
+<text x="38" y="182" text-anchor="middle" class="day">DAY 1</text>
+<rect x="170" y="154" width="340" height="52" rx="8" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
+<text x="340" y="174" text-anchor="middle" dominant-baseline="central" class="th" fill="#3fb950">Data cleaning and EDA</text>
+<text x="340" y="194" text-anchor="middle" dominant-baseline="central" class="ts" fill="#2ea043">Null handling, normalization, 5 visual dashboards</text>
+<line x1="340" y1="206" x2="340" y2="232" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 3: feature engineering ── -->
+<text x="38" y="260" text-anchor="middle" class="day">DAY 2</text>
+<rect x="170" y="234" width="340" height="52" rx="8" fill="#0f2922" stroke="#2ea043" stroke-width="0.5"/>
+<text x="340" y="254" text-anchor="middle" dominant-baseline="central" class="th" fill="#3fb950">Feature engineering</text>
+<text x="340" y="274" text-anchor="middle" dominant-baseline="central" class="ts" fill="#2ea043">title + director + cast + genres + description</text>
+<line x1="340" y1="286" x2="340" y2="312" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 4: sentence chunking ── -->
+<text x="38" y="344" text-anchor="middle" class="day">DAY 5</text>
+<rect x="150" y="314" width="380" height="60" rx="8" fill="#1a2a1a" stroke="#3fb950" stroke-width="0.8"/>
+<text x="340" y="337" text-anchor="middle" dominant-baseline="central" class="th" fill="#56d364">Sentence-level chunking</text>
+<text x="340" y="356" text-anchor="middle" dominant-baseline="central" class="ts" fill="#3fb950">sent_tokenize — 2-sentence chunks, show_id_chunk_N IDs</text>
+<line x1="340" y1="374" x2="340" y2="400" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 5: embeddings ── -->
+<text x="38" y="428" text-anchor="middle" class="day">DAY 2</text>
+<rect x="170" y="402" width="340" height="52" rx="8" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.5"/>
+<text x="340" y="422" text-anchor="middle" dominant-baseline="central" class="th" fill="#a5a0f0">Embedding generation</text>
+<text x="340" y="442" text-anchor="middle" dominant-baseline="central" class="ts" fill="#7f77dd">all-MiniLM-L6-v2 — 384-dim dense vectors per chunk</text>
+<line x1="340" y1="454" x2="340" y2="480" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 6: ChromaDB (persistent) ── -->
+<text x="38" y="510" text-anchor="middle" class="day">DAY 6</text>
+<rect x="170" y="482" width="340" height="52" rx="8" fill="#1a1a3a" stroke="#534ab7" stroke-width="0.8"/>
+<text x="340" y="502" text-anchor="middle" dominant-baseline="central" class="th" fill="#a5a0f0">ChromaDB  —  PersistentClient</text>
+<text x="340" y="522" text-anchor="middle" dominant-baseline="central" class="ts" fill="#7f77dd">Persisted to ./chroma_data — survives restarts</text>
+<line x1="340" y1="534" x2="340" y2="560" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 7: semantic retrieval ── -->
+<text x="38" y="590" text-anchor="middle" class="day">DAY 3</text>
+<rect x="150" y="562" width="380" height="52" rx="8" fill="#2a0f0f" stroke="#da3633" stroke-width="0.5"/>
+<text x="340" y="582" text-anchor="middle" dominant-baseline="central" class="th" fill="#f85149">Semantic retrieval</text>
+<text x="340" y="602" text-anchor="middle" dominant-baseline="central" class="ts" fill="#b22222">Query vector + $and filters: genre, year, rating, type</text>
+<line x1="340" y1="614" x2="340" y2="640" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 8: Gemini LLM — NEW Day 6 ── -->
+<text x="38" y="675" text-anchor="middle" class="day">DAY 6</text>
+<rect x="148" y="642" width="384" height="68" rx="8" fill="#1a1228" stroke="#8957e5" stroke-width="1.2"/>
+<text x="340" y="666" text-anchor="middle" dominant-baseline="central" class="th" fill="#d2a8ff">Gemini 2.5 Flash — LLM layer</text>
+<text x="340" y="686" text-anchor="middle" dominant-baseline="central" class="ts" fill="#a371f7">Context from top-K chunks → ranked recommendations</text>
+<text x="340" y="702" text-anchor="middle" dominant-baseline="central" class="ts" fill="#8957e5">API key via GEMINI_API_KEY env var</text>
+<!-- DAY 6 pill -->
+<rect x="492" y="634" width="46" height="16" rx="8" fill="#6e40c9"/>
+<text x="515" y="645" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#d2a8ff">DAY 6</text>
+<line x1="340" y1="710" x2="340" y2="736" stroke="#484f58" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── STAGE 9: final output ── -->
+<text x="38" y="764" text-anchor="middle" class="day">DAY 6</text>
+<rect x="170" y="738" width="340" height="52" rx="8" fill="#161b22" stroke="#30363d" stroke-width="0.5"/>
+<text x="340" y="758" text-anchor="middle" dominant-baseline="central" class="th" fill="#e6edf3">Natural language recommendations</text>
+<text x="340" y="778" text-anchor="middle" dominant-baseline="central" class="ts" fill="#8b949e">Top 3 titles with per-title reasoning — deduplicated</text>
+
+<!-- legend -->
+<line x1="80" y1="812" x2="600" y2="812" stroke="#30363d" stroke-width="0.5"/>
+<rect x="88"  y="822" width="10" height="10" rx="2" fill="#0f2922" stroke="#2ea043"  stroke-width="0.5"/>
+<text x="104" y="831" class="ts" fill="#8b949e">Data</text>
+<rect x="160" y="822" width="10" height="10" rx="2" fill="#1a2a1a" stroke="#3fb950"  stroke-width="0.5"/>
+<text x="176" y="831" class="ts" fill="#8b949e">Chunking</text>
+<rect x="254" y="822" width="10" height="10" rx="2" fill="#1a1a3a" stroke="#534ab7"  stroke-width="0.5"/>
+<text x="270" y="831" class="ts" fill="#8b949e">ML / Vector</text>
+<rect x="368" y="822" width="10" height="10" rx="2" fill="#2a0f0f" stroke="#da3633"  stroke-width="0.5"/>
+<text x="384" y="831" class="ts" fill="#8b949e">Retrieval</text>
+<rect x="458" y="822" width="10" height="10" rx="2" fill="#1a1228" stroke="#8957e5"  stroke-width="0.5"/>
+<text x="474" y="831" class="ts" fill="#8b949e">LLM (new)</text>
+
+<text x="340" y="858" text-anchor="middle" class="ts" fill="#484f58">github.com/ather-ops/CineSense-AI</text>
+</svg>
