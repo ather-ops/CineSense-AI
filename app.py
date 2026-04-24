@@ -7,17 +7,20 @@
 import streamlit as st
 import os
 import sys
-from dotenv import load_dotenv
 
-# Add the 03_Core folder to Python path
+# Add the Core folder to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-core_path = os.path.join(current_dir, '03_Core')
+core_path = os.path.join(current_dir, '03-Core')
 sys.path.insert(0, core_path)
 
-# Load environment variables
-load_dotenv()
+# For local development only - will be ignored on Streamlit Cloud
+try:
+    from dotenv import load_dotenv
+    load_dotenv('.env.txt')
+except:
+    pass  # On Streamlit Cloud, this will just skip
 
-# Import from rag_engine (located in 03_Core folder)
+# Import from rag_engine
 from rag_engine import load_resources, cinesense
 
 # Page configuration
@@ -223,7 +226,7 @@ def load_rag_resources():
             return True
         except Exception as e:
             st.error(f"Failed to load resources: {str(e)}")
-            st.info("Make sure GEMINI_API_KEY is set in Streamlit secrets")
+            st.info("Make sure GEMINI_API_KEY is set in Streamlit secrets (Settings -> Secrets)")
             return False
 
 # Load resources if not already loaded
