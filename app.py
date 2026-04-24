@@ -1,5 +1,4 @@
 """
-"""
 CineSense AI — Streamlit Chat UI
 Author: ather-ops | github.com/ather-ops/CineSense-AI
 Run: streamlit run app.py
