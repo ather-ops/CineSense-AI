@@ -14,12 +14,22 @@ import chromadb
 import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 
-# ── Constants ─────────────────────────────────────────────────────────────────
-CHROMA_PATH = "./chroma_data"
+# ── Step 1.5: Get the root directory (for proper path handling) ──────────────
+# Get the directory where this file (rag_engine.py) is located
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the root directory (parent of 03_Core folder)
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+
+# ── Constants with correct paths ─────────────────────────────────────────────
+# ChromaDB will be stored in the root directory
+CHROMA_PATH = os.path.join(ROOT_DIR, "chroma_data")
 COLLECTION  = "netflix_titles"
 EMBED_MODEL = "all-MiniLM-L6-v2"
 LLM_MODEL   = "models/gemini-2.5-flash"
 TOP_K       = 5
+
+# Data path for CSV file (if needed)
+DATA_PATH = os.path.join(ROOT_DIR, "01_Data", "netflix_titles.csv")
 
 
 # ── Step 2: Load models and vector store ──────────────────────────────────────
@@ -45,9 +55,19 @@ def load_resources():
     print("Loading embedding model...")
     embed_model = SentenceTransformer(EMBED_MODEL)
 
-    print("Connecting to ChromaDB...")
+    print(f"Connecting to ChromaDB at: {CHROMA_PATH}")
+    # Ensure the chroma_data directory exists
+    os.makedirs(CHROMA_PATH, exist_ok=True)
     client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_collection(name=COLLECTION)
+    
+    try:
+        collection = client.get_collection(name=COLLECTION)
+        print(f"Collection '{COLLECTION}' found!")
+    except:
+        raise EnvironmentError(
+            f"Collection '{COLLECTION}' not found in ChromaDB.\n"
+            "Please run your ingestion script first to create the collection."
+        )
 
     print("Configuring Gemini...")
     genai.configure(api_key=api_key)
@@ -180,6 +200,11 @@ def cinesense(
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    print(f"Root directory: {ROOT_DIR}")
+    print(f"ChromaDB path: {CHROMA_PATH}")
+    print(f"Data file path: {DATA_PATH}")
+    print("-" * 40)
+    
     embed_model, collection, llm = load_resources()
 
     # Test queries
