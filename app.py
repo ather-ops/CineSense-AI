@@ -4,6 +4,32 @@ Author: ather-ops | github.com/ather-ops/CineSense-AI
 Run: streamlit run app.py
 """
 import streamlit as st
+import os
+from pathlib import Path
+
+# ── Auto-run ingestion if database doesn't exist ──────────────────────────
+CHROMA_PATH = "./chroma_data"
+if not os.path.exists(CHROMA_PATH) or not os.listdir(CHROMA_PATH):
+    st.warning("First-time setup: Building vector database... (takes 2-3 min)")
+    try:
+        # Run ingestion from 03-Core folder
+        import subprocess
+        ingestion_path = os.path.join("03-Core", "ingestion.py")
+        result = subprocess.run(["python", ingestion_path], capture_output=True, text=True)
+        if result.returncode == 0:
+            st.success("Database created! Refreshing app...")
+            st.rerun()
+        else:
+            st.error(f"Error: {result.stderr}")
+            st.stop()
+    except Exception as e:
+        st.error(f"Setup failed: {e}")
+        st.stop()
+
+# Add 03-Core to path for imports
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "03-Core"))
+
 from rag_engine import load_resources, cinesense
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
