@@ -1,15 +1,10 @@
 """
+"""
 CineSense AI — Streamlit Chat UI
 Author: ather-ops | github.com/ather-ops/CineSense-AI
 Run: streamlit run app.py
 """
 import streamlit as st
-import sys
-from pathlib import Path
-
-# Add 03-Core folder to Python path
-sys.path.insert(0, str(Path(__file__).parent / "03-Core"))
-
 from rag_engine import load_resources, cinesense
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
