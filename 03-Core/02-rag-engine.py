@@ -4,6 +4,10 @@
 # Author: ather-ops
 # =============================================================================
 
+# ── Step 0: Load environment variables from .env file ────────────────────────
+from dotenv import load_dotenv
+load_dotenv()  # This loads your API key from .env file
+
 # ── Step 1: Imports ──────────────────────────────────────────────────────────
 import os
 import chromadb
@@ -24,18 +28,28 @@ def load_resources():
     Load the embedding model, connect to the persisted ChromaDB collection,
     and configure the Gemini LLM. Returns (embed_model, collection, llm).
     """
+    # Get API key from environment variable (loaded from .env file)
     api_key = os.getenv("GEMINI_API_KEY")
+    
     if not api_key:
         raise EnvironmentError(
             "GEMINI_API_KEY environment variable not set.\n"
-            "Run: export GEMINI_API_KEY=your_key_here"
+            "Please create a .env file in your project root with:\n"
+            "GEMINI_API_KEY=your_api_key_here\n\n"
+            "Or set it manually:\n"
+            "  Windows PowerShell: $env:GEMINI_API_KEY='your_key_here'\n"
+            "  Windows CMD: set GEMINI_API_KEY=your_key_here\n"
+            "  Mac/Linux: export GEMINI_API_KEY='your_key_here'"
         )
 
+    print("Loading embedding model...")
     embed_model = SentenceTransformer(EMBED_MODEL)
 
-    client     = chromadb.PersistentClient(path=CHROMA_PATH)
+    print("Connecting to ChromaDB...")
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_collection(name=COLLECTION)
 
+    print("Configuring Gemini...")
     genai.configure(api_key=api_key)
     llm = genai.GenerativeModel(LLM_MODEL)
 
