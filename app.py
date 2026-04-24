@@ -6,11 +6,19 @@
 
 import streamlit as st
 import os
+import sys
 from dotenv import load_dotenv
-from rag_engine import load_resources, cinesense
+
+# Add the 'core' folder to Python path so it can find rag_engine
+current_dir = os.path.dirname(os.path.abspath(__file__))
+core_path = os.path.join(current_dir, 'core')
+sys.path.insert(0, core_path)
 
 # Load environment variables
 load_dotenv()
+
+# Now import from rag_engine (which is in core folder)
+from rag_engine import load_resources, cinesense
 
 # Page configuration
 st.set_page_config(
@@ -196,7 +204,7 @@ if 'llm' not in st.session_state:
 # Header with logo
 st.markdown("""
 <div class="cine-header">
-    <div class="logo-text">✦ CineSense AI ✦</div>
+    <div class="logo-text">CineSense AI</div>
     <div class="tagline">Next Level Gen AI Tool by Ather-Ops</div>
 </div>
 """, unsafe_allow_html=True)
@@ -215,7 +223,7 @@ def load_rag_resources():
             return True
         except Exception as e:
             st.error(f"Failed to load resources: {str(e)}")
-            st.info("Make sure GEMINI_API_KEY is set in .env file")
+            st.info("Make sure GEMINI_API_KEY is set in Streamlit secrets")
             return False
 
 # Load resources if not already loaded
