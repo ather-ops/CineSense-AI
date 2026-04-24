@@ -9,15 +9,16 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Add the current directory to path
+# Add the 03_Core folder to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, current_dir)
+core_path = os.path.join(current_dir, '03_Core')
+sys.path.insert(0, core_path)
 
 # Load environment variables
 load_dotenv()
 
-# FIXED: Import from core folder
-from core.rag_engine import load_resources, cinesense
+# Import from rag_engine (located in 03_Core folder)
+from rag_engine import load_resources, cinesense
 
 # Page configuration
 st.set_page_config(
