@@ -5,35 +5,58 @@ Run: streamlit run app.py
 """
 import streamlit as st
 import os
+import sys
 from pathlib import Path
+
+# ── Set page config FIRST (must be before any other st commands) ──
+st.set_page_config(page_title="CineSense AI", page_icon="🎬", layout="centered")
+
+# ── Add 03-Core to path ──
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "03-Core"))
 
 # ── Auto-run ingestion if database doesn't exist ──────────────────────────
 CHROMA_PATH = "./chroma_data"
-if not os.path.exists(CHROMA_PATH) or not os.listdir(CHROMA_PATH):
-    st.warning("First-time setup: Building vector database... (takes 2-3 min)")
+
+if not os.path.exists(CHROMA_PATH):
+    st.warning("🔄 First-time setup: Building vector database... (takes 2-3 min)")
+    st.info("Please wait... this only happens once!")
+    
     try:
-        # Run ingestion from 03-Core folder
-        import subprocess
-        ingestion_path = os.path.join("03-Core", "ingestion.py")
-        result = subprocess.run(["python", ingestion_path], capture_output=True, text=True)
-        if result.returncode == 0:
-            st.success("Database created! Refreshing app...")
-            st.rerun()
-        else:
-            st.error(f"Error: {result.stderr}")
-            st.stop()
+        # Import and run ingestion directly
+        os.chdir(os.path.dirname(__file__))  # Ensure correct working directory
+        
+        # Create a button to trigger build
+        if st.button("🚀 Build Database Now"):
+            with st.spinner("Building... please wait 2-3 minutes"):
+                import subprocess
+                ingestion_script = os.path.join("03-Core", "ingestion.py")
+                
+                # Run ingestion
+                result = subprocess.run(
+                    ["python", ingestion_script],
+                    capture_output=True,
+                    text=True,
+                    cwd=os.path.dirname(__file__)
+                )
+                
+                if result.returncode == 0:
+                    st.success("✅ Database created! Click below to continue")
+                    if st.button("🔄 Refresh App"):
+                        st.rerun()
+                else:
+                    st.error(f"Build failed:\n{result.stderr}")
+                    st.code(result.stdout)
+        st.stop()
+        
     except Exception as e:
         st.error(f"Setup failed: {e}")
+        st.code(str(e))
         st.stop()
 
-# Add 03-Core to path for imports
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "03-Core"))
-
+# ── Import RAG engine after path is set ──
 from rag_engine import load_resources, cinesense
 
-st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
-
+# ── Styles ──
 st.markdown("""
 <style>
 .stApp{background:#000}
@@ -106,6 +129,7 @@ try:
     embed_model, collection, llm = get_engine()
 except Exception as e:
     st.error(f"Engine error: {e}")
+    st.info("The database might not exist yet. Click 'Build Database' above if you see that option.")
     st.stop()
 
 if "msgs" not in st.session_state: st.session_state.msgs = []
