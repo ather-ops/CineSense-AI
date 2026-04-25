@@ -3,7 +3,7 @@ CineSense AI - Streamlit Chat Interface
 Author: ather-ops | github.com/ather-ops/CineSense-AI
 """
 import streamlit as st
-from rag_engine import load_resources, cinesense
+from 02_rag_engine.py import load_resources, cinesense
 import os
 import sys
 import subprocess
