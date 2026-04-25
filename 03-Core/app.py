@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 CHROMA_PATH = "./chroma_data"
 COLLECTION = "netflix_titles"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "gemini-2.0-flash-exp"
+LLM_MODEL = "gemini-1.5-flash"
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
 
@@ -27,7 +27,7 @@ header,footer,#MainMenu{visibility:hidden}
 """, unsafe_allow_html=True)
 
 st.title("CineSense AI")
-st.markdown("Netflix Intelligence - Gemini 2.0 + RAG")
+st.markdown("Netflix Intelligence - Gemini 1.5 + RAG")
 
 @st.cache_resource(show_spinner="Loading AI...")
 def load_all():
