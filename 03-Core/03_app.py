@@ -4,6 +4,21 @@ Author: ather-ops | github.com/ather-ops/CineSense-AI
 """
 import streamlit as st
 from rag_engine import load_resources, cinesense
+import os
+import sys
+import subprocess
+
+# AUTO-BUILD DATABASE IF MISSING
+# This checks if chroma_data exists. If not, it runs pipeline.py automatically on the server.
+if not os.path.exists("../chroma_data"):
+    print("First-time setup: Building vector database...")
+    print("Please wait, this takes 2-3 minutes on the first launch.")
+    try:
+        # Run the pipeline script located in the same folder
+        subprocess.run([sys.executable, "01_pipeline.py"], check=True)
+        print("Database created successfully!")
+    except Exception as e:
+        print(f"Error creating database: {e}")
 
 st.set_page_config(
     page_title="CineSense AI",
