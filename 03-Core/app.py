@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 CHROMA_PATH = "./chroma_data"
 COLLECTION = "netflix_titles"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "models/gemini-2.0-flash-exp"
+LLM_MODEL = "gemini-2.0-flash-exp"
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
 
