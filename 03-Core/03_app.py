@@ -2,8 +2,17 @@
 CineSense AI - Streamlit Chat Interface
 Author: ather-ops | github.com/ather-ops/CineSense-AI
 """
-import streamlit as st
-from 02_rag_engine import load_resources, cinesense
+import importlib.util
+from pathlib import Path
+
+RAG_PATH = Path(__file__).resolve().parent / "02_rag_engine.py"
+
+spec = importlib.util.spec_from_file_location("rag_engine", RAG_PATH)
+rag_engine = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rag_engine)
+
+load_resources = rag_engine.load_resources
+cinesense = rag_engine.cinesense
 import os
 import sys
 import subprocess
