@@ -10,7 +10,6 @@ from sentence_transformers import SentenceTransformer
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
 
-# CSS
 st.markdown("""
 <style>
 .stApp{background:#000}
@@ -29,46 +28,24 @@ header,footer,#MainMenu{visibility:hidden}
 st.markdown('<div class="header"><h1>CineSense AI</h1><p>Your Netflix recommendation engine powered by Gemini AI</p></div>', unsafe_allow_html=True)
 
 @st.cache_resource(show_spinner=False)
-def load_resources():
-    # Get API key
+def load_all():
     try:
-        api_key = st.secrets["AIzaSyBuiI2-k6zdQTMqdU0QKXL1V0lIluV9Lc4"]
+        api_key = st.secrets["GEMINI_API_KEY"]
     except:
         api_key = os.getenv("GEMINI_API_KEY", "")
-
     if not api_key:
-        st.error("Add GEMINI_API_KEY in Streamlit Secrets!")
+        st.error("Add API key in Secrets!")
         st.stop()
-
-    # Load models
-    embed_model = SentenceTransformer("all-MiniLM-L6-v2")
-    client = chromadb.PersistentClient(path="./chroma_data")
-    collection = client.get_collection(name="netflix_titles")
-
-    # Configure Gemini with NEW API
+    
     genai.configure(api_key=api_key)
+    embed = SentenceTransformer("all-MiniLM-L6-v2")
+    client = chromadb.PersistentClient(path="./chroma_data")
+    coll = client.get_collection(name="netflix_titles")
+    llm = genai.GenerativeModel("models/gemini-2.5-flash")
+    return embed, coll, llm
 
-    # List available models and pick the first working one
-    available_models = []
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            available_models.append(m.name)
+embed_model, collection, llm = load_all()
 
-    if not available_models:
-        st.error("No models available with this API key!")
-        st.stop()
-
-    # Use first available model
-    model_name = available_models[0]
-    st.success(f"Using model: {model_name}")
-
-    llm = genai.GenerativeModel(model_name)
-
-    return embed_model, collection, llm, model_name
-
-embed_model, collection, llm, model_name = load_resources()
-
-# Chat interface
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -76,41 +53,30 @@ for msg in st.session_state.messages:
     role = "user-msg" if msg["role"] == "user" else "ai-msg"
     st.markdown(f'<div class="{role}">{msg["content"]}</div>', unsafe_allow_html=True)
 
-query = st.text_input("", placeholder="Ask anything about Netflix...", key="q", label_visibility="collapsed")
+query = st.text_input("", placeholder="Ask about Netflix...", key="q", label_visibility="collapsed")
 
 if st.button("Send") and query:
     st.session_state.messages.append({"role": "user", "content": query})
-
-    with st.spinner("Searching..."):
+    with st.spinner("Thinking..."):
         try:
-            # Search ChromaDB
-            query_emb = embed_model.encode([query])[0]
-            results = collection.query(query_embeddings=[query_emb.tolist()], n_results=5)
-
-            # Build context
+            q_emb = embed_model.encode([query])[0]
+            res = collection.query(query_embeddings=[q_emb.tolist()], n_results=5)
             seen = set()
             titles = []
-            for meta in results["metadatas"][0]:
-                t = meta["title"]
-                if t not in seen:
-                    seen.add(t)
-                    titles.append(f"• {t} ({meta['release_year']})")
-
-            context = "\n".join(titles)
-            prompt = f"Recommend these Netflix titles for: '{query}'\n\n{context}\n\nBe brief."
-
-            # Generate answer
-            response = llm.generate_content(prompt)
-            answer = response.text
-
+            for m in res["metadatas"][0]:
+                if m["title"] not in seen:
+                    seen.add(m["title"])
+                    titles.append(f"• {m['title']} ({m['release_year']})")
+            ctx = "\n".join(titles)
+            p = f"Recommend for: '{query}'\n\n{ctx}\n\nBe brief."
+            ans = llm.generate_content(p).text
         except Exception as e:
-            answer = f"Error: {str(e)}"
-
-        st.session_state.messages.append({"role": "assistant", "content": answer})
+            ans = f"Error: {str(e)}"
+        st.session_state.messages.append({"role": "assistant", "content": ans})
     st.rerun()
 
 if st.session_state.messages and st.button("Clear"):
     st.session_state.messages = []
     st.rerun()
 
-st.markdown(f'<div style="text-align:center;margin-top:30px;font-size:10px;color:#444">CineSense AI · Model: {model_name} · ather-ops</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;margin-top:30px;font-size:10px;color:#444">CineSense AI · models/gemini-2.5-flash · ather-ops</div>', unsafe_allow_html=True)
