@@ -11,88 +11,220 @@ from sentence_transformers import SentenceTransformer
 CHROMA_PATH = "./chroma_data"
 COLLECTION = "netflix_titles"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "models/gemini-2.5-flash-preview-04-17"
+LLM_MODEL = "gemini-1.5-flash"
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
 
+# ============================================
+# PRO CSS STYLES
+# ============================================
 st.markdown("""
 <style>
-.stApp{background:#000}.block-container{max-width:700px;padding-top:2rem}
-header,footer,#MainMenu{visibility:hidden}
-.user-message{background:#0f0f0f;border:1px solid #333;border-radius:12px;padding:10px;color:#fff;max-width:80%;margin-left:auto;margin-bottom:10px}
-.assistant-message{background:#0a0a0a;border-left:3px solid #f97316;border-radius:12px;padding:10px;color:#fff;max-width:90%;margin-bottom:10px}
-.stButton>button{background:#333!important;color:#fff!important;border-radius:10px!important}
-.stTextInput>div>div>input{background:#0a0a0a!important;color:#fff!important;border:1px solid #333!important}
+.stApp { background: #000000; }
+.block-container { max-width: 800px; padding-top: 1rem; }
+header, footer, #MainMenu { visibility: hidden; }
+
+/* Header */
+.header { text-align: center; padding: 30px 0 20px; }
+.header h1 { 
+    color: #ffffff; 
+    font-size: 28px; 
+    font-weight: 700;
+    margin: 0;
+    font-family: sans-serif;
+}
+.header p { 
+    color: #888888; 
+    font-size: 14px;
+    font-style: italic;  /* Italic subheading */
+    margin: 8px 0 0 0;
+}
+
+/* Chat messages */
+.user-msg { 
+    background: #1a1a1a; 
+    border-radius: 18px 18px 4px 18px; 
+    padding: 12px 16px; 
+    color: #ffffff; 
+    font-size: 14px;
+    max-width: 75%;
+    margin: 8px 0;
+    margin-left: auto;
+    line-height: 1.5;
+}
+.ai-msg { 
+    background: #0d0d0d; 
+    border-radius: 18px 18px 18px 4px; 
+    padding: 12px 16px; 
+    color: #dddddd; 
+    font-size: 14px;
+    max-width: 85%;
+    margin: 8px 0;
+    border-left: 3px solid #f97316;
+    line-height: 1.6;
+}
+
+/* Input box */
+.stTextInput > div > div > input { 
+    background: #1a1a1a !important; 
+    border: 1px solid #333333 !important; 
+    border-radius: 25px !important; 
+    color: #ffffff !important; 
+    padding: 12px 20px !important;
+    font-size: 15px !important;
+}
+.stTextInput > div > div > input::placeholder { 
+    color: #555555 !important; 
+}
+
+/* Send button */
+.stButton > button { 
+    background: #f97316 !important; 
+    color: #ffffff !important; 
+    border: none !important; 
+    border-radius: 25px !important; 
+    padding: 10px 30px !important;
+    font-weight: 600 !important;
+}
+.stButton > button:hover { 
+    background: #ea6c0c !important; 
+}
+
+/* Quick prompts */
+.quick-btn { 
+    background: #1a1a1a !important; 
+    border: 1px solid #333333 !important; 
+    color: #888888 !important; 
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+}
+.quick-btn:hover { 
+    border-color: #f97316 !important; 
+    color: #f97316 !important;
+}
+
+/* Divider */
+.divider { border-top: 1px solid #1a1a1a; margin: 20px 0; }
+
+/* Footer */
+.footer { text-align: center; color: #444444; font-size: 11px; margin-top: 30px; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("CineSense AI")
-st.markdown("Netflix Intelligence - Gemini 1.5 + RAG")
+# ============================================
+# HEADER WITH ITALIC SUBTITLE
+# ============================================
+st.markdown("""
+<div class="header">
+    <h1>CineSense AI</h1>
+    <p>Your Netflix recommendation engine powered by Gemini AI</p>
+</div>
+""", unsafe_allow_html=True)
 
-@st.cache_resource(show_spinner="Loading AI...")
-def load_all():
+# ============================================
+# LOAD AI RESOURCES
+# ============================================
+@st.cache_resource(show_spinner=False)
+def load_ai():
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
     except:
         api_key = os.getenv("GEMINI_API_KEY", "")
+    
     if not api_key:
-        raise ValueError("Add GEMINI_API_KEY in Streamlit Secrets!")
+        st.error("Add GEMINI_API_KEY in Streamlit Secrets")
+        st.stop()
+    
     embed_model = SentenceTransformer(EMBED_MODEL)
     client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_collection(name=COLLECTION)
     genai.configure(api_key=api_key)
     llm = genai.GenerativeModel(LLM_MODEL)
+    
     return embed_model, collection, llm
 
-try:
-    embed_model, collection, llm = load_all()
-except Exception as e:
-    st.error(f"Error: {e}")
-    st.stop()
+embed_model, collection, llm = load_ai()
 
-def build_context(results):
-    context = ""
-    seen = set()
-    for meta in results["metadatas"][0]:
-        title = meta["title"]
-        if title not in seen:
-            seen.add(title)
-            context += f"- {title} ({meta['release_year']})\n  Genre: {meta['listed_in']}\n\n"
-    return context
+# ============================================
+# QUICK PROMPTS
+# ============================================
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
+quick_prompts = ["Emotional", "Thriller", "Comedy", "Sci-Fi", "Crime", "Family", "Hidden Gem", "Binge"]
+cols = st.columns(len(quick_prompts))
+for i, prompt in enumerate(quick_prompts):
+    with cols[i]:
+        if st.button(prompt, key=f"qp{i}", help=f"Search for {prompt} movies"):
+            st.session_state['q'] = prompt
+            st.rerun()
+
+# ============================================
+# CHAT HISTORY
+# ============================================
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Display messages
 for msg in st.session_state.messages:
-    role = "user-message" if msg["role"] == "user" else "assistant-message"
-    st.markdown(f'<div class="{role}">{msg["content"]}</div>', unsafe_allow_html=True)
+    if msg["role"] == "user":
+        st.markdown(f'<div class="user-msg">{msg["content"]}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="ai-msg">{msg["content"]}</div>', unsafe_allow_html=True)
 
-query = st.text_input("Ask about Netflix...", key="q")
+# ============================================
+# INPUT SECTION
+# ============================================
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-if st.button("Send") and query:
+col1, col2 = st.columns([5, 1])
+with col1:
+    query = st.text_input("", placeholder="Ask me anything about Netflix...", 
+                         key="q", label_visibility="collapsed")
+with col2:
+    send = st.button("Send")
+
+if query:
     st.session_state.messages.append({"role": "user", "content": query})
-    with st.spinner("Searching..."):
+    
+    with st.spinner("Thinking..."):
         query_emb = embed_model.encode([query])[0]
         results = collection.query(query_embeddings=[query_emb.tolist()], n_results=5)
-        context = build_context(results)
-        prompt = f"You are CineSense AI. Recommend top 3 titles for: \'{query}\'\n\n{context}"
+        
+        # Build recommendations
+        seen = set()
+        titles = []
+        for meta in results["metadatas"][0]:
+            title = meta["title"]
+            if title not in seen:
+                seen.add(title)
+                titles.append(f"• {title} ({meta['release_year']}) - {meta['listed_in']}")
+        
+        context = "\n".join(titles)
+        prompt = f"As CineSense AI, recommend these Netflix titles for: \'{query}\'\n\n{context}\n\nGive a brief, friendly response."
+        
         try:
             answer = llm.generate_content(prompt).text
-        except Exception:
-            metas = results.get("metadatas", [[]])[0] if isinstance(results, dict) else []
-            seen = []
-            for meta in metas:
-                title = meta.get("title", "Unknown")
-                if title not in seen:
-                    seen.append(title)
-            if seen:
-                answer = "Here are some good matches:\n\n" + "\n".join([f"- {t}" for t in seen[:3]])
-            else:
-                answer = "I found matches, but could not generate an AI response right now."
+        except Exception as e:
+            answer = f"Error: {str(e)}"
+        
         st.session_state.messages.append({"role": "assistant", "content": answer})
+    
     st.rerun()
 
+# ============================================
+# CLEAR CHAT
+# ============================================
 if st.session_state.messages:
-    if st.button("Clear"):
+    if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
+
+# ============================================
+# FOOTER
+# ============================================
+st.markdown("""
+<div class="footer">
+    CineSense AI · RAG + ChromaDB + Gemini · ather-ops
+</div>
+""", unsafe_allow_html=True)
