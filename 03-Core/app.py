@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 CHROMA_PATH = "./chroma_data"
 COLLECTION = "netflix_titles"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "gemini-1.5-flash"
+LLM_MODEL = "models/gemini-2.5-flash-preview-04-17"
 
 st.set_page_config(page_title="CineSense AI", page_icon="C", layout="centered")
 
@@ -76,7 +76,19 @@ if st.button("Send") and query:
         results = collection.query(query_embeddings=[query_emb.tolist()], n_results=5)
         context = build_context(results)
         prompt = f"You are CineSense AI. Recommend top 3 titles for: \'{query}\'\n\n{context}"
-        answer = llm.generate_content(prompt).text
+        try:
+            answer = llm.generate_content(prompt).text
+        except Exception:
+            metas = results.get("metadatas", [[]])[0] if isinstance(results, dict) else []
+            seen = []
+            for meta in metas:
+                title = meta.get("title", "Unknown")
+                if title not in seen:
+                    seen.append(title)
+            if seen:
+                answer = "Here are some good matches:\n\n" + "\n".join([f"- {t}" for t in seen[:3]])
+            else:
+                answer = "I found matches, but could not generate an AI response right now."
         st.session_state.messages.append({"role": "assistant", "content": answer})
     st.rerun()
 
