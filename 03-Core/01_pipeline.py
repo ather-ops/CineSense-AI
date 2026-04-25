@@ -17,7 +17,7 @@ nltk.download('punkt_tab', quiet=True)
 
 # Load data
 try:
-    df = pd.read_csv("../Data/netflix_titles.csv")
+    df = pd.read_csv("../01-Data/netflix_titles.csv")
     print(f"File loaded successfully: {len(df)} rows")
 except FileNotFoundError:
     print("Error: netflix_titles.csv not found in Data folder")
