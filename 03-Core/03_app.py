@@ -2,168 +2,62 @@
 CineSense AI - Streamlit Chat Interface
 Author: ather-ops | github.com/ather-ops/CineSense-AI
 """
+import streamlit as st
+import os
+import sys
+import subprocess
 import importlib.util
 from pathlib import Path
 
+# ── DYNAMIC IMPORT FOR 02_rag_engine (Starts with number) ──
 RAG_PATH = Path(__file__).resolve().parent / "02_rag_engine.py"
-
 spec = importlib.util.spec_from_file_location("rag_engine", RAG_PATH)
 rag_engine = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rag_engine)
 
 load_resources = rag_engine.load_resources
 cinesense = rag_engine.cinesense
-import os
-import sys
-import subprocess
 
-# AUTO-BUILD DATABASE IF MISSING
-# This checks if chroma_data exists. If not, it runs pipeline.py automatically on the server.
+# ── AUTO-BUILD DATABASE IF MISSING ──
 if not os.path.exists("../chroma_data"):
     print("First-time setup: Building vector database...")
-    print("Please wait, this takes 2-3 minutes on the first launch.")
+    print("Please wait (2-3 minutes)...")
     try:
-        # Run the pipeline script located in the same folder
         subprocess.run([sys.executable, "01_pipeline.py"], check=True)
         print("Database created successfully!")
     except Exception as e:
         print(f"Error creating database: {e}")
 
+# ── PAGE CONFIG (Must be first st command) ──
 st.set_page_config(
     page_title="CineSense AI",
     page_icon="C",
     layout="centered"
 )
 
+# ── CSS STYLES ──
 st.markdown("""
 <style>
-.stApp {
-    background: #000000;
-}
-.block-container {
-    max-width: 700px;
-    padding-top: 2rem;
-}
-header, footer, #MainMenu {
-    visibility: hidden;
-}
-.top-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #1a1a1a;
-    margin-bottom: 20px;
-}
-.top-header img {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid #222;
-}
-.top-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    font-family: sans-serif;
-}
-.top-subtitle {
-    font-size: 11px;
-    color: #666;
-    font-family: sans-serif;
-}
-.top-badge {
-    margin-left: auto;
-    font-size: 10px;
-    color: #666;
-    border: 1px solid #222;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-family: monospace;
-}
-.user-message {
-    background: #0f0f0f;
-    border: 1px solid #1f1f1f;
-    border-radius: 12px 12px 4px 12px;
-    padding: 10px 14px;
-    color: #e0e0e0;
-    font-size: 14px;
-    line-height: 1.6;
-    max-width: 80%;
-    margin: 0 0 12px auto;
-    font-family: sans-serif;
-}
-.assistant-message {
-    background: #0a0a0a;
-    border: 1px solid #1a1a1a;
-    border-left: 2px solid #f97316;
-    border-radius: 4px 12px 12px 12px;
-    padding: 12px 14px;
-    color: #d0d0d0;
-    font-size: 14px;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    max-width: 90%;
-    margin: 0 auto 12px 0;
-    font-family: sans-serif;
-}
-.message-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-    font-family: sans-serif;
-}
-.label-user {
-    color: #444;
-    text-align: right;
-}
-.label-assistant {
-    color: #f97316;
-}
-.stButton>button {
-    background: #0a0a0a !important;
-    border: 1px solid #1f1f1f !important;
-    border-radius: 18px !important;
-    color: #666 !important;
-    font-size: 11px !important;
-    padding: 5px 12px !important;
-    width: 100% !important;
-    font-family: sans-serif !important;
-}
-.stButton>button:hover {
-    border-color: #f97316 !important;
-    color: #f97316 !important;
-}
-div[data-testid="column"]:last-child .stButton>button {
-    background: #f97316 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
-    padding: 10px 20px !important;
-}
-div[data-testid="column"]:last-child .stButton>button:hover {
-    background: #e8650f !important;
-}
-.stTextInput>div>div>input {
-    background: #0a0a0a !important;
-    border: 1px solid #1f1f1f !important;
-    border-radius: 10px !important;
-    color: #e0e0e0 !important;
-    font-size: 14px !important;
-    caret-color: #f97316 !important;
-    padding: 10px 14px !important;
-}
-.stTextInput>div>div>input::placeholder {
-    color: #333 !important;
-}
-label {
-    color: #444 !important;
-    font-size: 11px !important;
-}
+.stApp { background: #000000; }
+.block-container { max-width: 700px; padding-top: 2rem; }
+header, footer, #MainMenu { visibility: hidden; }
+.top-header { display: flex; align-items: center; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #1a1a1a; margin-bottom: 20px; }
+.top-header img { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #222; }
+.top-title { font-size: 18px; font-weight: 700; color: #ffffff; font-family: sans-serif; }
+.top-subtitle { font-size: 11px; color: #666; font-family: sans-serif; }
+.top-badge { margin-left: auto; font-size: 10px; color: #666; border: 1px solid #222; border-radius: 20px; padding: 4px 12px; font-family: monospace; }
+.user-message { background: #0f0f0f; border: 1px solid #1f1f1f; border-radius: 12px 12px 4px 12px; padding: 10px 14px; color: #e0e0e0; font-size: 14px; line-height: 1.6; max-width: 80%; margin: 0 0 12px auto; font-family: sans-serif; }
+.assistant-message { background: #0a0a0a; border: 1px solid #1a1a1a; border-left: 2px solid #f97316; border-radius: 4px 12px 12px 12px; padding: 12px 14px; color: #d0d0d0; font-size: 14px; line-height: 1.7; white-space: pre-wrap; max-width: 90%; margin: 0 auto 12px 0; font-family: sans-serif; }
+.message-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; font-family: sans-serif; }
+.label-user { color: #444; text-align: right; }
+.label-assistant { color: #f97316; }
+.stButton>button { background: #0a0a0a !important; border: 1px solid #1f1f1f !important; border-radius: 18px !important; color: #666 !important; font-size: 11px !important; padding: 5px 12px !important; width: 100% !important; font-family: sans-serif !important; }
+.stButton>button:hover { border-color: #f97316 !important; color: #f97316 !important; }
+div[data-testid="column"]:last-child .stButton>button { background: #f97316 !important; color: #ffffff !important; border: none !important; border-radius: 10px !important; font-weight: 700 !important; font-size: 13px !important; padding: 10px 20px !important; }
+div[data-testid="column"]:last-child .stButton>button:hover { background: #e8650f !important; }
+.stTextInput>div>div>input { background: #0a0a0a !important; border: 1px solid #1f1f1f !important; border-radius: 10px !important; color: #e0e0e0 !important; font-size: 14px !important; caret-color: #f97316 !important; padding: 10px 14px !important; }
+.stTextInput>div>div>input::placeholder { color: #333 !important; }
+label { color: #444 !important; font-size: 11px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -188,7 +82,7 @@ try:
     embed_model, collection, llm = get_engine()
 except Exception as e:
     st.error(f"Engine initialization failed: {e}")
-    st.info("Make sure you have run pipeline.py and added GEMINI_API_KEY to Streamlit Secrets")
+    st.info("Building database... Refresh in 3 minutes.")
     st.stop()
 
 if "messages" not in st.session_state:
