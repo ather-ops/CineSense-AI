@@ -45,7 +45,7 @@ This is not a recommender system. It is a full retrieval-augmented generation pi
 ## Pipeline Architecture
 
 <div align="center">
-  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture.svg?raw=true" alt="CineSense AI Pipeline Architecture" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/architecture1.svg?raw=true" alt="CineSense AI Pipeline Architecture" width="72%" />
 </div>
 
 ---
