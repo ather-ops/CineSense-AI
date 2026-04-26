@@ -10,16 +10,23 @@
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-Persistent-E67E22?style=flat-square&labelColor=0d1117)
 ![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-8957E5?style=flat-square&logo=google&logoColor=white&labelColor=0d1117)
 ![NLTK](https://img.shields.io/badge/NLTK-sent__tokenize-9B59B6?style=flat-square&labelColor=0d1117)
-![FastAPI](https://img.shields.io/badge/FastAPI-In%20Progress-009688?style=flat-square&logo=fastapi&logoColor=white&labelColor=0d1117)
-![Streamlit](https://img.shields.io/badge/Streamlit-In%20Progress-FF4B4B?style=flat-square&logo=streamlit&logoColor=white&labelColor=0d1117)
-![Status](https://img.shields.io/badge/Status-Active%20Daily%20Commits-27AE60?style=flat-square&labelColor=0d1117)
-![Sprint](https://img.shields.io/badge/Sprint-Day%2011-8957E5?style=flat-square&labelColor=0d1117)
-![MVP](https://img.shields.io/badge/MVP%20Launch-April%2025-E74C3C?style=flat-square&labelColor=0d1117)
+![Streamlit](https://img.shields.io/badge/Streamlit-MVP%20Live-FF4B4B?style=flat-square&logo=streamlit&logoColor=white&labelColor=0d1117)
+![Commits](https://img.shields.io/badge/Commits-125%2B-27AE60?style=flat-square&labelColor=0d1117)
+![Sprint](https://img.shields.io/badge/Sprint-Day%2015-8957E5?style=flat-square&labelColor=0d1117)
+![Phase](https://img.shields.io/badge/Phase-1%20Complete-2ECC71?style=flat-square&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-F39C12?style=flat-square&labelColor=0d1117)
 
 <br/>
 
-> **Semantic search for Netflix — sentence-level chunking, ChromaDB vector store, and Gemini 2.5 Flash generating natural language recommendations. MVP launching April 25.**
+### MVP is live
+
+**[cinesense-ai-v1.streamlit.app](https://cinesense-ai-v1.streamlit.app/)**
+
+> Describe what you want to watch. Get ranked Netflix recommendations powered by semantic search and Gemini 2.5 Flash. No keyword matching. No collaborative filtering. Pure RAG.
+
+<br/>
+
+> Phase 1 complete. Phase 2 — full website with own backend, Chrome Extension, Telegram bot — in progress.
 
 </div>
 
@@ -27,26 +34,11 @@
 
 ## What is CineSense AI
 
-CineSense AI is a production-grade RAG system built on the Netflix titles dataset (8,800+ titles). You describe what you want to watch in plain language. The pipeline encodes your query into a vector, retrieves the most semantically relevant chunks from ChromaDB, and sends them to Gemini 2.5 Flash — which returns ranked recommendations with per-title reasoning.
+CineSense AI is a production-grade RAG system trained on the Netflix titles dataset (8,800+ real titles). You describe what you want to watch in plain language. The pipeline encodes your query into a vector, retrieves the most semantically relevant chunks from a persistent ChromaDB vector store, and sends them to Gemini 2.5 Flash — which returns ranked recommendations with per-title reasoning.
 
-This repository is a daily-commit build log. Every day, one new capability is added. The final destination is a Chrome Extension that sits inside Netflix itself.
+This is not a recommender system. It is a full retrieval-augmented generation pipeline built from scratch over 15 days and 125+ commits.
 
-**RAG Foundation:** [Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG) — learn the complete embedding pipeline from one-hot encoding through SentenceTransformers before diving into this repo.
-
----
-
-## MVP Launch — April 25
-
-The core RAG pipeline (ingestion + retrieval + LLM) is complete. The final two layers before MVP are being added now:
-
-| Layer | Status | ETA |
-|---|---|---|
-| `ingestion.py` — full pipeline to ChromaDB | Done | — |
-| `rag_engine.py` — retrieval + Gemini 2.5 Flash | Done | — |
-| EDA visuals — 5 production charts | Done | — |
-| `FastAPI` — REST endpoint wrapping the RAG pipeline | In progress | April 24 |
-| `app.py` — Streamlit UI | In progress | April 24–25 |
-| MVP live | — | **April 25** |
+**Learn RAG from scratch:** [Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG) — the foundation repo. One-hot encoding through SentenceTransformers, step by step, fully annotated.
 
 ---
 
@@ -71,7 +63,6 @@ The core RAG pipeline (ingestion + retrieval + LLM) is complete. The final two l
 Five production charts generated from the raw Netflix dataset during ingestion. Saved to `04-Visuals/`.
 
 <div align="center">
-
 <table>
 <tr>
 <td align="center" width="50%">
@@ -100,111 +91,109 @@ Five production charts generated from the raw Netflix dataset during ingestion. 
 </td>
 </tr>
 </table>
-
 </div>
+
+---
+
+## It Actually Works — The Test Story
+
+The last two days before launch were not smooth. Getting the full pipeline working end-to-end — Streamlit UI through ChromaDB through Gemini — produced errors that took 48 hours of continuous debugging and 40+ commits to resolve.
+
+ChromaDB metadata type mismatches caused `$gte` filters to silently fail. The Gemini API rate limits hit mid-test. Streamlit session state was re-initializing the embedding model on every single query. None of these were obvious. All of them were solved.
+
+These are the screenshots from when it finally worked:
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="50%">
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/1.png?raw=true" width="100%" alt="CineSense AI working — test 1"/>
+<br/><sub>First successful end-to-end query</sub>
+</td>
+<td align="center" width="50%">
+<img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/2.png?raw=true" width="100%" alt="CineSense AI working — test 2"/>
+<br/><sub>Filtered search with genre and year working</sub>
+</td>
+</tr>
+</table>
+</div>
+
+125+ commits across 15 days. Some are one-line fixes. Some are complete rewrites. None are copy-paste. AI was used in specific places to debug errors — the architecture, the decisions, and the pipeline were built from understanding.
+
+---
+
+## Phase 2 Roadmap
+
+Phase 1 is the MVP. Phase 2 is the real product.
+
+| Feature | Status |
+|---|---|
+| Streamlit MVP — live | Done |
+| Full website with custom FastAPI backend, no third-party LLM keys | In progress |
+| Chrome Extension — semantic search overlay inside Netflix | Planned |
+| Telegram bot — query CineSense directly from Telegram | Planned |
+| Amazon product search RAG (separate repo, next 5 days) | Planned |
+
+The full website will not use the Gemini API. It will run self-hosted inference — no third-party key, no rate limits, full control over the model layer.
 
 ---
 
 ## Roadmap and Priorities
 
-Work is executed in strict priority order. The next item on this list is always the only item being worked on.
-
 | Priority | Task | Status |
 |---|---|---|
-| 1 | `ingestion.py` — full pipeline to ChromaDB, production-ready | Done |
-| 2 | `rag_engine.py` — retrieval + Gemini 2.5 Flash LLM layer | Done |
-| 3 | EDA visuals — 5 charts saved to `04-Visuals/` | Done |
-| 4 | Unit tests — ingestion correctness, metadata schema, retrieval smoke tests | In progress |
-| 5 | `FastAPI` — REST endpoint wrapping the full RAG pipeline | In progress |
-| 6 | `app.py` — Streamlit UI | In progress |
-| 7 | Chrome Extension scaffold — Manifest V3, Netflix DOM injection | Pending |
-| 8 | Chrome Extension UI — live semantic search overlay inside Netflix | Pending |
+| 1 | `pipeline.py` — full ingestion pipeline to ChromaDB | Done |
+| 2 | `rag_engine.py` — retrieval + Gemini 2.5 Flash | Done |
+| 3 | EDA visuals — 5 charts to `04-Visuals/` | Done |
+| 4 | `app.py` — Streamlit UI | Done |
+| 5 | Unit tests — ingestion, chunking, retrieval | In progress |
+| 6 | Custom FastAPI backend | In progress |
+| 7 | Chrome Extension | Planned |
+| 8 | Telegram bot | Planned |
+
+---
+
+## Build Log
+
+### Days 1–3 — Data, Embeddings, Retrieval
+
+CSV ingestion, `fill_missing()` with median/mean strategy, 5-chart EDA dashboard. SentenceTransformer embeddings at 384 dimensions, ChromaDB collection, batch insert at size 100. `retrieve()` with compound `$and` filter support across genre, year, rating, and type.
+
+### Days 4–5 — Chunking
+
+Day 4 built experimental word-count splitting — produced incomplete mid-sentence cuts, degrading embedding quality. Day 5 replaced it with `sentence_chunk()` using NLTK `sent_tokenize` for true sentence-boundary detection. Full pipeline refactor followed: type hints on all functions, explicit metadata casting, named constants throughout.
+
+| Aspect | Day 4 | Day 5 |
+|---|---|---|
+| Split strategy | Fixed word-count | Sentence-boundary |
+| Sentence integrity | Cuts mid-sentence | Always complete |
+| Chunk IDs | `chunk_{i}` | `{show_id}_chunk_{N}` |
+| Metadata typing | Implicit | Explicit cast per field |
+
+### Day 6 — Gemini 2.5 Flash
+
+`rag_engine.py` complete. `build_context()` deduplicates chunks by title before sending to the LLM. `rag_answer()` sends a grounded prompt — the model can only recommend titles that were retrieved, preventing hallucination. ChromaDB upgraded to `PersistentClient`. API key loaded from environment variable.
+
+### Days 7–11 — Production Hardening and EDA
+
+Pipeline hardening, EDA chart exports, code reviews, Streamlit UI scaffolding.
+
+### Days 12–15 — 48 Hours of Debugging and MVP Launch
+
+48 continuous hours. 40+ commits. ChromaDB type errors, Gemini rate limits, Streamlit session state issues — every layer broke at integration. Every layer was fixed. MVP launched Day 15.
 
 ---
 
 ## Testing
 
-Tests live in `03-Core/tests/`. Written alongside the pipeline — not after.
+Tests in `03-Core/tests/` — written alongside the pipeline, not after.
 
-**Coverage:**
-- `fill_missing()` — year columns use median, categoricals fill with `"unknown"`, no nulls remain
-- `sentence_chunk()` — chunks never exceed `max_sentences`, all non-empty, sentences always complete
-- ChromaDB insert — chunk count matches expected, metadata fields present and correctly typed, IDs follow `show_id_chunk_N` format
-- `retrieve()` — returns results for a known query, compound filters reduce result count vs no filter
+Coverage: `fill_missing()` null handling, `sentence_chunk()` sentence integrity and chunk size, ChromaDB insert schema validation, `retrieve()` semantic correctness and filter behavior.
 
 ```bash
 pip install pytest
 pytest 03-Core/tests/ -v
 ```
-
----
-
-## Build Log — Day by Day
-
----
-
-### Days 1–3 — Data, Embeddings, Retrieval
-
-**Day 1:** CSV ingestion, null strategy (`fill_missing`), EDA dashboard — five visualizations saved to `04-Visuals/`.
-
-**Day 2:** Combined text field construction, `SentenceTransformer("all-MiniLM-L6-v2")` embeddings (384-dim), ChromaDB collection, batch insert at size 100.
-
-**Day 3:** `retrieve()` with compound `$and` filter support across genre, year range, rating, and type. Four query patterns tested. CSV export.
-
----
-
-### Days 4–5 — Chunking
-
-**Day 4:** Experimental word-count splitting. Produced incomplete sentences mid-chunk — deliberate proof-of-concept.
-
-**Day 5:** Replaced with `sentence_chunk(text, max_sentences=2)` using NLTK `sent_tokenize`. Full pipeline refactor: type hints, explicit metadata casting, named constants, title-level deduplication in retrieval.
-
-| Aspect | Day 4 | Day 5 |
-|---|---|---|
-| Split strategy | Fixed word-count | Sentence-boundary detection |
-| Sentence integrity | Cuts mid-sentence | Always complete |
-| Chunk IDs | `chunk_{i}` | `{show_id}_chunk_{N}` |
-| Metadata typing | Implicit | Explicit cast per field |
-
----
-
-### Day 6 — LLM Layer: Gemini 2.5 Flash
-
-`rag_engine.py` — the complete RAG answer generation layer.
-
-`build_context(results)` — deduplicates retrieved chunks by title, formats as a numbered context block.
-
-`rag_answer(llm, query, results)` — constructs a grounded prompt and sends it to Gemini 2.5 Flash. The model recommends exactly 3 titles from the retrieved set with one-sentence reasoning each. It cannot hallucinate titles that were not retrieved — the context is the only source.
-
-ChromaDB upgraded from `Client()` to `PersistentClient(path="./chroma_data")` — the vector store now survives restarts. `ingestion.py` runs once; `rag_engine.py` loads the persisted store on every subsequent query.
-
-API key loaded from `GEMINI_API_KEY` environment variable — never hardcoded in source.
-
-**Example output:**
-
-```
-Query: something emotional and heartbreaking
-
-1. The Pursuit of Happyness (2006)
-   A father's relentless struggle through homelessness makes this
-   one of the most emotionally raw films on the platform.
-
-2. Grave of the Fireflies (1988)
-   A devastating wartime story told through two siblings —
-   widely considered one of the most heartbreaking films ever made.
-
-3. Room (2015)
-   A mother and son's captivity and their trauma of re-entering
-   the world delivers sustained emotional weight throughout.
-```
-
----
-
-### Days 7–11 — EDA Visuals, Refactoring, UI and API
-
-Days 7 through 11 covered production hardening of the ingestion pipeline, EDA chart exports to `04-Visuals/`, code reviews across `ingestion.py` and `rag_engine.py`, and the start of the FastAPI and Streamlit layers.
-
-FastAPI endpoint and Streamlit UI are in active development. MVP launches **April 25**.
 
 ---
 
@@ -214,42 +203,12 @@ FastAPI endpoint and Streamlit UI are in active development. MVP launches **Apri
 git clone https://github.com/ather-ops/CineSense-AI.git
 cd CineSense-AI
 pip install -r requirements.txt
-```
-
-Set your Gemini API key:
-
-```bash
 export GEMINI_API_KEY=your_key_here
+python 03-Core/pipeline.py
+streamlit run 03-Core/app.py
 ```
 
-Run ingestion once to build and persist the vector store:
-
-```bash
-python 03-Core/ingestion.py
-```
-
-Query the RAG engine:
-
-```bash
-python 03-Core/rag_engine.py
-```
-
-Or from Python:
-
-```python
-from rag_engine import load_resources, cinesense
-
-embed_model, collection, llm = load_resources()
-
-cinesense(
-    "a slow-burn psychological thriller",
-    collection=collection,
-    embed_model=embed_model,
-    llm=llm,
-    genre="Thrillers",
-    min_year=2015,
-)
-```
+Or skip all of this and use the live app: **[cinesense-ai-v1.streamlit.app](https://cinesense-ai-v1.streamlit.app/)**
 
 ---
 
@@ -263,17 +222,17 @@ cinesense(
 | Tokenization | NLTK `sent_tokenize` |
 | Embeddings | SentenceTransformers `all-MiniLM-L6-v2` |
 | Vector Store | ChromaDB `PersistentClient` |
-| LLM | Gemini 2.5 Flash (`google-generativeai`) |
-| API | FastAPI (in progress) |
-| UI | Streamlit (in progress) |
+| LLM | Gemini 2.5 Flash |
+| UI | Streamlit |
 | Testing | pytest |
-| Extension (upcoming) | Chrome Extension Manifest V3 |
+| Phase 2 backend | FastAPI (custom, self-hosted) |
+| Phase 2 extension | Chrome Extension Manifest V3 |
 
 ---
 
 ## Learn RAG From Scratch
 
-**[Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG)** — annotated notebooks covering the full embedding pipeline from one-hot encoding through SentenceTransformers, built for progressive learning.
+**[Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG)** — the foundation repo. Covers the complete embedding pipeline from one-hot encoding through SentenceTransformers. Every concept powering CineSense AI is explained there first. If you want to understand what this project actually does, start there.
 
 ---
 
@@ -281,11 +240,14 @@ cinesense(
 
 **Ather Assadullah** — Self-taught AI/ML engineer, Kashmir, India.
 
-Building production-grade ML systems independently, one commit at a time.
+Completed linear and logistic regression, feature engineering. Skipped KNN and RNN. Went straight into RAG — starting from one-hot encoding and working up to LLM connections over the last month and a half. Built [Cortex\_RAG](https://github.com/ather-ops/Cortex_RAG) as the learning foundation. Then built this.
+
+One commit at a time. No shortcuts.
 
 [![GitHub](https://img.shields.io/badge/GitHub-ather--ops-181717?style=flat-square&logo=github&labelColor=0d1117)](https://github.com/ather-ops)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-ather--assadullah-0A66C2?style=flat-square&logo=linkedin&labelColor=0d1117)](https://linkedin.com/in/ather-assadullah-164492301)
 [![Portfolio](https://img.shields.io/badge/Portfolio-Live-27AE60?style=flat-square&labelColor=0d1117)](https://portofolio-eight-fawn.vercel.app)
+[![Live App](https://img.shields.io/badge/CineSense%20AI-Try%20It-8957E5?style=flat-square&logo=streamlit&labelColor=0d1117)](https://cinesense-ai-v1.streamlit.app/)
 
 ---
 
@@ -297,6 +259,8 @@ MIT License
 
 <div align="center">
 
-Built with focus. Committed daily. MVP launching April 25.
+Phase 1 complete. Phase 2 in progress. Built from scratch in 15 days.
+
+**[Try CineSense AI — cinesense-ai-v1.streamlit.app](https://cinesense-ai-v1.streamlit.app/)**
 
 </div>
