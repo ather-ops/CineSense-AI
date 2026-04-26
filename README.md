@@ -53,7 +53,7 @@ This is not a recommender system. It is a full retrieval-augmented generation pi
 ## Repository Structure
 
 <div align="center">
-  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/Repo-Struture.png?raw=true" alt="CineSense AI Repository Structure" width="72%" />
+  <img src="https://github.com/ather-ops/CineSense-AI/blob/main/02-Assets/repo_structure.svg?raw=true" alt="CineSense AI Repository Structure" width="72%" />
 </div>
 
 ---
