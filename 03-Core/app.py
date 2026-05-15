@@ -55,7 +55,7 @@ header, footer, #MainMenu, [data-testid="stToolbar"] {
 
 .hero-badge {
     display: inline-block;
-    font-size: 11px;
+    font-size: 16px;
     letter-spacing: 0.8px;
     text-transform: uppercase;
     color: #ec4899;
@@ -67,7 +67,7 @@ header, footer, #MainMenu, [data-testid="stToolbar"] {
 }
 
 .hero-title {
-    font-size: 52px;
+    font-size: 72px;
     line-height: 1.1;
     font-weight: 900;
     letter-spacing: -2px;
@@ -398,4 +398,4 @@ if st.session_state.messages:
         st.rerun()
 
 # FOOTER
-st.markdown('<div class="footer">CineSense AI · blue/pink dark · ather-ops</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">CineSense AI · ather-ops</div>', unsafe_allow_html=True)
