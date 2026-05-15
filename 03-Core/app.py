@@ -1,11 +1,9 @@
-
 """
-CineSense AI - Blue Pink Chat Interface
+CineSense AI - Perfect Blue Pink Dark Interface
 Author: ather-ops
 """
 
 import os
-import html
 import streamlit as st
 import chromadb
 import google.generativeai as genai
@@ -18,199 +16,262 @@ LLM_MODEL = "models/gemini-2.5-flash"
 
 st.set_page_config(
     page_title="CineSense AI",
-    page_icon="C",
-    layout="centered"
+    page_icon="🎬",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
 <style>
-.stApp {
-    background:
-        radial-gradient(circle at top left, rgba(59,130,246,0.25), transparent 32%),
-        radial-gradient(circle at top right, rgba(236,72,153,0.22), transparent 30%),
-        linear-gradient(180deg, #050816 0%, #020617 100%);
+/* FULL BLACK BACKGROUND EVERYWHERE */
+html, body, .stApp, 
+[data-testid="stAppViewContainer"],
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stBottomBlockContainer"],
+section, main, div {
+    background-color: #000000 !important;
 }
 
 .block-container {
     max-width: 780px;
-    padding-top: 1.4rem;
-    padding-bottom: 2rem;
+    padding: 2rem 1rem 4rem;
+    background-color: #000000 !important;
 }
 
-header, footer, #MainMenu {
+header, footer, #MainMenu, [data-testid="stToolbar"] {
     visibility: hidden;
+    display: none;
 }
 
+/* HERO HEADER */
 .hero {
     text-align: center;
-    padding: 28px 12px 20px;
-    margin-bottom: 16px;
+    padding: 36px 20px 32px;
+    margin-bottom: 24px;
+    background-color: #000000;
 }
 
 .hero-badge {
     display: inline-block;
     font-size: 11px;
-    letter-spacing: .5px;
-    color: #bfdbfe;
-    border: 1px solid rgba(147,197,253,0.28);
-    background: rgba(15,23,42,0.75);
-    padding: 6px 14px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #ec4899;
+    border: 1px solid rgba(236,72,153,0.40);
+    background-color: rgba(236,72,153,0.08);
+    padding: 7px 18px;
     border-radius: 999px;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
 }
 
 .hero-title {
-    font-size: 40px;
-    line-height: 1.05;
-    font-weight: 800;
-    letter-spacing: -1.4px;
+    font-size: 52px;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -2px;
     margin: 0;
-    background: linear-gradient(90deg, #60a5fa, #e879f9, #fb7185);
+    background: linear-gradient(90deg, #3b82f6 0%, #ec4899 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
 }
 
 .hero-subtitle {
-    color: #94a3b8;
-    font-size: 14px;
+    color: #6b7280;
+    font-size: 15px;
     font-style: italic;
-    margin-top: 12px;
-    line-height: 1.7;
+    margin-top: 16px;
+    line-height: 1.8;
 }
 
-.hero-small {
-    color: #475569;
-    font-size: 11px;
-    margin-top: 8px;
-}
-
+/* QUICK PROMPTS */
 .quick-row {
-    margin: 10px 0 20px;
+    margin: 16px 0 28px;
 }
 
 .stButton > button {
-    background: rgba(15,23,42,0.78) !important;
-    color: #cbd5e1 !important;
-    border: 1px solid rgba(148,163,184,0.16) !important;
+    background-color: #000000 !important;
+    color: #9ca3af !important;
+    border: 1px solid rgba(236,72,153,0.30) !important;
     border-radius: 999px !important;
     font-size: 12px !important;
-    padding: 7px 13px !important;
+    padding: 9px 16px !important;
     width: 100% !important;
-    transition: all .18s ease !important;
+    transition: all 0.2s ease !important;
 }
 
 .stButton > button:hover {
-    border-color: rgba(236,72,153,0.75) !important;
-    color: #f9a8d4 !important;
-    background: rgba(30,41,59,0.9) !important;
+    background: linear-gradient(135deg, #3b82f6, #ec4899) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
 }
 
+/* USER MESSAGE - PINK */
 .user-msg {
+    display: block;
     width: fit-content;
-    max-width: 78%;
-    margin: 12px 0 12px auto;
-    padding: 12px 16px;
-    border-radius: 20px 20px 5px 20px;
-    background: linear-gradient(135deg, #2563eb, #db2777);
+    max-width: 72%;
+    margin: 16px 0 16px auto;
+    padding: 14px 20px;
+    border-radius: 24px 24px 6px 24px;
+    background-color: #ec4899;
     color: #ffffff;
-    font-size: 14px;
-    line-height: 1.6;
-    box-shadow: 0 12px 32px rgba(219,39,119,0.16);
+    font-size: 14.5px;
+    line-height: 1.7;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(236,72,153,0.35);
 }
 
+/* AI MESSAGE - BLUE PINK GRADIENT WITH BORDERS */
 .ai-msg {
+    display: block;
     width: fit-content;
-    max-width: 88%;
-    margin: 12px auto 12px 0;
-    padding: 14px 17px;
-    border-radius: 20px 20px 20px 5px;
-    background: rgba(15,23,42,0.88);
-    color: #dbeafe;
-    font-size: 14px;
-    line-height: 1.75;
-    border: 1px solid rgba(96,165,250,0.16);
-    border-left: 3px solid #60a5fa;
-    box-shadow: 0 14px 35px rgba(15,23,42,0.34);
+    max-width: 86%;
+    margin: 16px auto 16px 0;
+    padding: 16px 20px;
+    border-radius: 24px 24px 24px 6px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(236,72,153,0.15));
+    color: #f3f4f6;
+    font-size: 14.5px;
+    line-height: 1.85;
+    border: 1px solid #3b82f6;
+    border-right: 1px solid #ec4899;
+    box-shadow: 
+        0 0 0 1px rgba(59,130,246,0.20),
+        0 12px 32px rgba(0,0,0,0.40);
     white-space: pre-wrap;
 }
 
+/* EMPTY STATE */
 .empty-box {
     text-align: center;
-    margin: 34px 0 26px;
-    padding: 28px 18px;
-    border: 1px solid rgba(148,163,184,0.12);
-    border-radius: 24px;
-    background: rgba(15,23,42,0.45);
+    margin: 48px 0 36px;
+    padding: 36px 24px;
+    border: 1px solid rgba(236,72,153,0.25);
+    border-radius: 32px;
+    background-color: rgba(236,72,153,0.05);
 }
 
 .empty-title {
-    color: #e0f2fe;
-    font-size: 18px;
+    color: #f9fafb;
+    font-size: 20px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .empty-text {
-    color: #64748b;
-    font-size: 13px;
-    line-height: 1.7;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.8;
 }
 
-.footer-note {
+/* CHAT INPUT - DARK TRANSPARENT BACKGROUND */
+[data-testid="stChatInputContainer"],
+[data-testid="stChatInput"],
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] form,
+[data-testid="stBottomBlockContainer"] {
+    background-color: #000000 !important;
+    background: #000000 !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    background-color: rgba(0,0,0,0.85) !important;
+    color: #f9fafb !important;
+    border: 1px solid rgba(236,72,153,0.50) !important;
+    border-radius: 26px !important;
+    caret-color: #ec4899 !important;
+    font-size: 15px !important;
+    padding: 15px 20px !important;
+    box-shadow: 
+        0 0 0 1px rgba(59,130,246,0.25),
+        inset 0 2px 8px rgba(0,0,0,0.40) !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #4b5563 !important;
+}
+
+[data-testid="stChatInput"] textarea:focus {
+    border: 1px solid #3b82f6 !important;
+    box-shadow: 
+        0 0 0 2px rgba(59,130,246,0.35),
+        inset 0 2px 8px rgba(0,0,0,0.40) !important;
+}
+
+/* SEND BUTTON */
+[data-testid="stChatInput"] button {
+    background: linear-gradient(135deg, #3b82f6, #ec4899) !important;
+    color: #ffffff !important;
+    border-radius: 999px !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(236,72,153,0.40) !important;
+}
+
+[data-testid="stChatInput"] button:hover {
+    background: linear-gradient(135deg, #2563eb, #db2777) !important;
+    box-shadow: 0 6px 24px rgba(236,72,153,0.55) !important;
+}
+
+/* FOOTER */
+.footer {
     text-align: center;
-    color: #334155;
+    color: #374151;
     font-size: 10px;
-    margin-top: 28px;
+    margin-top: 36px;
     font-family: monospace;
 }
 
-div[data-testid="stChatInput"] {
-    border-radius: 999px;
+/* FORCE BLACK EVERYWHERE */
+* {
+    scrollbar-color: #ec4899 #000000;
 }
 
-textarea {
-    background: rgba(15,23,42,0.95) !important;
-    color: #e2e8f0 !important;
-    border: 1px solid rgba(96,165,250,0.22) !important;
-    border-radius: 18px !important;
+::-webkit-scrollbar {
+    background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ec4899;
+    border-radius: 10px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
-@st.cache_resource(show_spinner="Loading CineSense AI...")
-def load_all():
+@st.cache_resource(show_spinner="🎬 Loading CineSense AI...")
+def load_engine():
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         api_key = os.getenv("GEMINI_API_KEY", "")
 
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found in Streamlit Secrets.")
+        raise ValueError("GEMINI_API_KEY not found")
 
     genai.configure(api_key=api_key)
 
-    embed_model = SentenceTransformer(EMBED_MODEL)
+    embed = SentenceTransformer(EMBED_MODEL)
     client = chromadb.PersistentClient(path=CHROMA_PATH)
-    collection = client.get_collection(name=COLLECTION)
+    coll = client.get_collection(name=COLLECTION)
     llm = genai.GenerativeModel(LLM_MODEL)
 
-    return embed_model, collection, llm
+    return embed, coll, llm
 
 
-def retrieve_titles(query, collection, embed_model, top_k=5):
-    query_emb = embed_model.encode([query])[0]
+def get_answer(query, collection, embed_model, llm):
+    q_emb = embed_model.encode([query])[0]
+
     results = collection.query(
-        query_embeddings=[query_emb.tolist()],
-        n_results=top_k,
-        include=["metadatas", "distances"]
+        query_embeddings=[q_emb.tolist()],
+        n_results=5,
+        include=["metadatas"]
     )
-    return results
 
-
-def build_context(results):
     seen = set()
     lines = []
 
@@ -218,146 +279,123 @@ def build_context(results):
         title = str(meta.get("title", "Unknown"))
         if title in seen:
             continue
-
         seen.add(title)
+
         year = meta.get("release_year", "Unknown")
         genre = meta.get("listed_in", "Unknown")
         rating = meta.get("rating", "Unknown")
-        content_type = meta.get("type", "Unknown")
 
-        lines.append(
-            f"- {title} ({year})\\n"
-            f"  Genre: {genre}\\n"
-            f"  Rating: {rating} | Type: {content_type}"
-        )
+        lines.append(f"- {title} ({year})\n  Genre: {genre}\n  Rating: {rating}")
 
-    return "\\n\\n".join(lines)
-
-
-def generate_answer(query, results, llm):
-    context = build_context(results)
+    context = "\n\n".join(lines)
 
     if not context.strip():
-        return "I could not find strong matches. Try describing the mood, genre, or era differently."
+        return "No strong matches found. Try different words."
 
-    prompt = f"""
-You are CineSense AI, a movie recommendation assistant.
+    prompt = f"""You are CineSense AI.
 
-User query:
-{query}
+User query: {query}
 
-Retrieved Netflix titles:
+Retrieved titles:
 {context}
 
-Recommend the top 3 most relevant titles.
-For each title, write:
-1. Title and year
-2. One short reason why it matches
-
-Rules:
-- Only use titles from the retrieved list.
-- Be concise.
-- Friendly tone.
-"""
+Recommend top 3. For each: title, year, one reason.
+Be concise and friendly. Only use retrieved titles."""
 
     response = llm.generate_content(prompt)
     return response.text
 
 
-def answer_query(query, collection, embed_model, llm):
-    results = retrieve_titles(query, collection, embed_model)
-    answer = generate_answer(query, results, llm)
-    return answer
-
-
+# HEADER
 st.markdown("""
 <div class="hero">
-    <div class="hero-badge">Phase 1 Live · RAG Movie Intelligence</div>
+    <div class="hero-badge">Phase 1 Live</div>
     <h1 class="hero-title">CineSense AI</h1>
     <div class="hero-subtitle">
-        Tell me your mood, memory, genre, or vibe.<br/>
-        CineSense searches Netflix titles by meaning, not keywords.
+        Describe your mood. Get Netflix recommendations.<br/>
+        Powered by RAG, ChromaDB, Gemini.
     </div>
-    <div class="hero-small">Powered by SentenceTransformers · ChromaDB · Gemini</div>
 </div>
 """, unsafe_allow_html=True)
 
+# LOAD
 try:
-    embed_model, collection, llm = load_all()
+    embed_model, collection, llm = load_engine()
 except Exception as e:
-    st.error(f"Engine error: {e}")
+    st.error(f"Error: {e}")
     st.stop()
 
+# SESSION
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-quick_prompts = [
+# QUICK PROMPTS
+prompts = [
     "something emotional",
-    "dark crime thriller",
-    "funny late night movie",
-    "mind bending sci-fi",
-    "old classic movie",
-    "feel good family film",
+    "dark thriller",
+    "funny movie",
+    "mind bending",
+    "old classic",
+    "feel good",
     "hidden gem",
-    "short series to binge"
+    "binge series"
 ]
 
 st.markdown('<div class="quick-row">', unsafe_allow_html=True)
 cols = st.columns(4)
-clicked_query = None
+clicked = None
 
-for i, prompt in enumerate(quick_prompts):
+for i, p in enumerate(prompts):
     with cols[i % 4]:
-        if st.button(prompt, key=f"quick_{i}"):
-            clicked_query = prompt
+        if st.button(p, key=f"q{i}"):
+            clicked = p
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+# EMPTY STATE
 if not st.session_state.messages:
     st.markdown("""
     <div class="empty-box">
-        <div class="empty-title">What are you in the mood to watch?</div>
+        <div class="empty-title">What do you want to watch?</div>
         <div class="empty-text">
-            Try: emotional drama, old thriller, sci-fi with twists,<br/>
-            or just describe a feeling.
+            Try: emotional drama, thriller, sci-fi, or just a feeling.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+# MESSAGES
 for msg in st.session_state.messages:
-    safe_content = html.escape(msg["content"])
+    safe = msg["content"].replace("<", "&lt;").replace(">", "&gt;")
 
     if msg["role"] == "user":
-        st.markdown(f'<div class="user-msg">{safe_content}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="user-msg">{safe}</div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="ai-msg">{safe_content}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="ai-msg">{safe}</div>', unsafe_allow_html=True)
 
-typed_query = st.chat_input("Ask CineSense what to watch...")
+# INPUT
+typed = st.chat_input("Ask CineSense...")
 
-query = clicked_query or typed_query
+query = clicked or typed
 
 if query:
     query = query.strip()
-
     if query:
         st.session_state.messages.append({"role": "user", "content": query})
 
-        with st.spinner("CineSense is thinking..."):
+        with st.spinner("Thinking..."):
             try:
-                answer = answer_query(query, collection, embed_model, llm)
+                answer = get_answer(query, collection, embed_model, llm)
             except Exception as e:
                 answer = f"Error: {str(e)}"
 
         st.session_state.messages.append({"role": "assistant", "content": answer})
         st.rerun()
 
+# CLEAR
 if st.session_state.messages:
-    if st.button("Clear chat", key="clear_chat"):
+    if st.button("Clear", key="clr"):
         st.session_state.messages = []
         st.rerun()
 
-st.markdown("""
-<div class="footer-note">
-CineSense AI · blue/pink interface · ather-ops
-</div>
-""", unsafe_allow_html=True)
+# FOOTER
+st.markdown('<div class="footer">CineSense AI · blue/pink dark · ather-ops</div>', unsafe_allow_html=True)
